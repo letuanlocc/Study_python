@@ -1,3 +1,4 @@
+{%load static%}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -32,11 +33,12 @@
             padding: 15px;
             width: 250px;
             text-align: center;
+            width: 400px;
         }
         .menu-item img {
             width: 100%;
-            height: 150px;
-            border-radius: 8px;
+            height: 200px;
+            border-radius: 15px;
             object-fit: cover;
         }
         .menu-item h3 {
@@ -66,22 +68,22 @@
 <body>
 
 <div class="menu-container">
-    <h1>Thực Đơn</h1>
+    <h1>Best choice</h1>
     <div class="menu-list">
         <div class="menu-item">
-            <img src="https://th.bing.com/th/id/R.004dae07b47f7f00f35a98961db5000a?rik=byOFasQUj2DYyA&pid=ImgRaw&r=0" alt="Phở Bò">
-            <h3>Phở Bò</h3>
-            <p>50.000 VNĐ</p>
+            <img src="{% static 'app\images\vithanh.jpg' %}" alt="Phở Bò">
+            <h3>Em vit hanh</h3>
+            <p>150.000 VNĐ</p>
         </div>
         <div class="menu-item">
-            <img src="https://th.bing.com/th/id/OSK.HEROzA_K_uPnQnA-ipQweCYujtIYk8kLiqf28ItHd42_LSI?rs=1&pid=ImgDetMain" alt="Bún Chả">
-            <h3>Bún Chả</h3>
-            <p>40.000 VNĐ</p>
+            <img src="{% static 'app\images\empe.jpg' %}"alt="Phở Bò">
+            <h3>Empe </h3>
+            <p>300.000 VNĐ</p>
         </div>
         <div class="menu-item">
-            <img src="https://th.bing.com/th/id/OIP._Cd2ZnXIOBIn8IBmxtCHvwHaE7?rs=1&pid=ImgDetMain" alt="Gỏi Cuốn">
-            <h3>Gỏi Cuốn</h3>
-            <p>30.000 VNĐ</p>
+            <img src="{% static 'app\images\emmeo.jpg' %}" alt="Gỏi Cuốn">
+            <h3>Em meo</h3>
+            <p>200.000 VNĐ</p>
         </div>
     </div>
 </div>
