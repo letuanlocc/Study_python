@@ -77,14 +77,15 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'NORTHWND',
+        'NAME': 'web_app',
         'HOST': 'localhost',      # Nếu SQL Server chạy trên máy
         'PORT': '1433',           # Port mặc định của SQL Server
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Kiểm tra driver đang dùng
-            'Trusted_Connection': 'yes',               # Dùng Windows Authentication
+        },
+        'USER': 'tuanloc',    # Thay 'your_username' bằng tên đăng nhập SQL của bạn
+        'PASSWORD': '2612',  # Thay 'your_password' bằng mật khẩu của bạn
     }
-}
 }
 
 

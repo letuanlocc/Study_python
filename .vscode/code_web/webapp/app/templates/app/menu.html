@@ -1,4 +1,4 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -33,7 +33,7 @@
             padding: 15px;
             width: 250px;
             text-align: center;
-            width: 400px;
+            transition: transform 0.3s ease-in-out;
         }
         .menu-item img {
             width: 100%;
@@ -48,21 +48,78 @@
             color: #28a745;
             font-weight: bold;
         }
-        .menu-item {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 15px;
-            padding: 15px;
-            width: 250px;
-            text-align: center;
-            transition: transform 0.3s ease-in-out;
-        }
-        
         .menu-item:hover {
             transform: scale(1.1);
         }
-        
+        .add-to-cart-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .added {
+            background-color: #6c757d;
+        }
+
+        /* Giỏ hàng hiển thị ở góc phải */
+        .cart-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .cart-container .cart-count {
+            background-color: #28a745;
+            color: white;
+            border-radius: 50%;
+            padding: 10px 15px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        /* Hiển thị giỏ hàng khi nhấn vào */
+        .cart-details {
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .cart-details ul {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .cart-details ul li {
+            margin-bottom: 10px;
+        }
+
+        .cart-details .close-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+        }
     </style>
 </head>
 <body>
@@ -71,22 +128,83 @@
     <h1>Best choice</h1>
     <div class="menu-list">
         <div class="menu-item">
-            <img src="{% static 'app\images\vithanh.jpg' %}" alt="Phở Bò">
+            <img src="{% static 'app/images/vithanh.jpg' %}" alt="Em vit hanh">
             <h3>Em vit hanh</h3>
             <p>150.000 VNĐ</p>
+            <button class="add-to-cart-btn" onclick="addToCart('Em vit hanh', 150000, this)">Thêm vào giỏ hàng</button>
         </div>
         <div class="menu-item">
-            <img src="{% static 'app\images\empe.jpg' %}"alt="Phở Bò">
-            <h3>Empe </h3>
+            <img src="{% static 'app/images/empe.jpg' %}" alt="Empe">
+            <h3>Empe</h3>
             <p>300.000 VNĐ</p>
+            <button class="add-to-cart-btn" onclick="addToCart('Empe', 300000, this)">Thêm vào giỏ hàng</button>
         </div>
         <div class="menu-item">
-            <img src="{% static 'app\images\emmeo.jpg' %}" alt="Gỏi Cuốn">
+            <img src="{% static 'app/images/emmeo.jpg' %}" alt="Em meo">
             <h3>Em meo</h3>
             <p>200.000 VNĐ</p>
+            <button class="add-to-cart-btn" onclick="addToCart('Em meo', 200000, this)">Thêm vào giỏ hàng</button>
         </div>
     </div>
 </div>
+
+<!-- Giỏ hàng hiển thị góc phải -->
+<div class="cart-container" onclick="toggleCartDetails()">
+    Giỏ hàng
+    <div class="cart-count" id="cart-count">0</div>
+</div>
+
+<!-- Chi tiết giỏ hàng -->
+<div class="cart-details" id="cart-details">
+    <button class="close-btn" onclick="toggleCartDetails()">Đóng</button>
+    <h3>Giỏ hàng</h3>
+    <ul id="cart-items">
+        <!-- Các món ăn sẽ được thêm vào đây -->
+    </ul>
+</div>
+
+<script>
+    let cartCount = 0;  // Biến để theo dõi số lượng món ăn trong giỏ hàng
+    let cartItems = []; // Mảng chứa các món ăn trong giỏ hàng
+
+    function addToCart(itemName, itemPrice, button) {
+        // Thêm món ăn vào giỏ hàng
+        cartCount++;
+        cartItems.push({ name: itemName, price: itemPrice });
+
+        // Cập nhật số lượng giỏ hàng
+        document.getElementById('cart-count').textContent = cartCount;
+
+        // Cập nhật chi tiết giỏ hàng
+        updateCartDetails();
+
+        // Thay đổi nội dung và style của button khi nhấn
+        button.innerHTML = "Đã thêm vào giỏ hàng";
+        button.classList.add("added");
+        button.disabled = true; // Tắt button sau khi thêm
+    }
+
+    function updateCartDetails() {
+        // Cập nhật chi tiết giỏ hàng
+        const cartItemsList = document.getElementById('cart-items');
+        cartItemsList.innerHTML = ""; // Xóa danh sách cũ
+        cartItems.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.name} - ${item.price.toLocaleString()} VNĐ`;
+            cartItemsList.appendChild(li);
+        });
+    }
+
+    function toggleCartDetails() {
+        // Hiển thị hoặc ẩn giỏ hàng
+        const cartDetails = document.getElementById('cart-details');
+        if (cartDetails.style.display === "none" || cartDetails.style.display === "") {
+            cartDetails.style.display = "block";
+        } else {
+            cartDetails.style.display = "none";
+        }
+    }
+</script>
 
 </body>
 </html>
