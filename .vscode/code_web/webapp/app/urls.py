@@ -6,4 +6,5 @@ urlpatterns = [
     path('link/',views.link_view, name ="link_page"),
     path('menu/',views.menu_view,name ="menu_page"),
     path('milk/',views.milk_view, name = "milk_page"),
+    path('register/',views.register_view, name = "register_page"),
 ]
