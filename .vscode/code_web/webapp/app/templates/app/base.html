@@ -6,6 +6,13 @@
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <html>
     <head>
+      {% if request.session.user_name %}
+           <h1>Chào {{ request.session.user_name }}</h1>
+           <a href="{% url 'logout_page' %}">Đăng xuất</a>
+      {% else %}
+           <h1>Chào khách</h1>
+           <a href="{% url 'login_page' %}">Đăng nhập</a>
+      {% endif %}
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <!--css-->
@@ -85,7 +92,7 @@
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="webapp\milkapp">home</a></li>
                     <li><a class="dropdown-item" href="#">sign out</a></li>
-                    <li><a class="dropdown-item" href="#">log out</a></li>
+                    <li><a class="dropdown-item" href="{% url 'login_page' %}">log in</a></li>
                     <li><a class="dropdown-item" href="{% url 'register_page' %}">register</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#">Something else here</a></li>
