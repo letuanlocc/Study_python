@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Đơn Hàng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Danh Sách Đơn Hàng</h2>
+    {% if don_hang_list %}
+        <table>
+            <thead>
+                <tr>
+                    <th>User Name</th>
+                    <th>Tên Đơn Hàng</th>
+                    <th>Tổng Tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for Don_hang in Don_hang_list %}
+                <tr>
+                    <td>{{ Don_hang.user_name.user_name }}</td>
+                    <td>{{ Don_hang.ten_don_hang }}</td>
+                    <td>{{ Don_hang.tong_tien }} VND</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Không có đơn hàng nào.</p>
+    {% endif %}
+
+</body>
+</html>

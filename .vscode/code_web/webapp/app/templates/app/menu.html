@@ -162,6 +162,10 @@
     <ul id="cart-items">
         <!-- Các món ăn sẽ được thêm vào đây -->
     </ul>
+    <h4>Tổng tiền: <span id="total-price">0</span> VNĐ</h4>
+    <a href="{% url 'check_out_page' %}" id="checkout-btn">
+        <button>Thanh toán</button>
+    </a>
 </div>
 
 <script>
@@ -186,16 +190,23 @@
     }
 
     function updateCartDetails() {
-        // Cập nhật chi tiết giỏ hàng
         const cartItemsList = document.getElementById('cart-items');
+        const totalPriceElement = document.getElementById('total-price');
+        
         cartItemsList.innerHTML = ""; // Xóa danh sách cũ
+        let total = 0; // Biến lưu tổng tiền
+    
         cartItems.forEach(item => {
             const li = document.createElement('li');
             li.textContent = `${item.name} - ${item.price.toLocaleString()} VNĐ`;
             cartItemsList.appendChild(li);
+            total += item.price; // Cộng dồn giá tiền
         });
+    
+        // Cập nhật tổng tiền
+        totalPriceElement.textContent = total.toLocaleString();
     }
-
+    
     function toggleCartDetails() {
         // Hiển thị hoặc ẩn giỏ hàng
         const cartDetails = document.getElementById('cart-details');
@@ -205,6 +216,7 @@
             cartDetails.style.display = "none";
         }
     }
+    
 </script>
 
 </body>

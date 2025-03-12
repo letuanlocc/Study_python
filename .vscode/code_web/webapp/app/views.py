@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from .forms import RegisterForm
 from django.contrib import messages
 from .forms import LoginForm
+from .models import Don_hang
 # Create your views here.
 def home(request):
     return render(request, 'app/home.html')
@@ -44,3 +45,16 @@ def logout_view(request):
         del request.session["user_name"]  # Xóa user_name khỏi session
         messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
+
+def Check_out(request):
+    if request.method == "POST":
+        form = Don_hang(request.POST)
+        if form .is_valid():
+            form.save()
+            messages.success(request, "Đặt hàng thành công!")
+        else:
+            messages.error(request, "Có lỗi xảy ra, vui lòng kiểm tra lại.")
+    else:
+        form = Don_hang()
+        
+    return render(request, 'app/check_out.html', {"form": form})

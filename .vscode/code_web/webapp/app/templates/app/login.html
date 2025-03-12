@@ -1,31 +1,99 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
-{% block content %}
-    <h2>Đăng nhập</h2>
-
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-        <div>
-            <label for="id_user_name">Tên đăng nhập:</label>
-            {{ form.user_name }}
-        </div>
-
-        <div>
-            <label for="id_pass_word">Mật khẩu:</label>
-            {{ form.pass_word }}
-        </div>
-
-        <button type="submit">Đăng nhập</button>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        .messages {
+            list-style: none;
+            padding: 0;
+        }
+        .messages li {
+            color: red;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        input:focus {
+            border-color: #36d1dc;
+            box-shadow: 0 0 8px rgba(54, 209, 220, 0.5);
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #36d1dc;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #5b86e5;
+        }
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.8s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <h2>Đăng Nhập</h2>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <label for="id_user_name">Tên đăng nhập:</label>
+                {{ form.user_name }}
+            </div>
+            <div>
+                <label for="id_pass_word">Mật khẩu:</label>
+                {{ form.pass_word }}
+            </div>
+            <button type="submit">Đăng nhập</button>
+        </form>
         <a href="{% url 'register_page' %}">
             <button type="button">Đăng ký</button>
         </a>
-    </form>
-{% endblock %}
+    </div>
+</body>
+</html>
