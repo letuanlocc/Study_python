@@ -3,7 +3,12 @@ from django.http import HttpResponse
 from .forms import RegisterForm
 from django.contrib import messages
 from .forms import LoginForm
-from .models import Don_hang
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import CheckOutSerializer
+from .models import Check_out
+# from .models import Don_hang
 # Create your views here.
 def home(request):
     return render(request, 'app/home.html')
@@ -46,15 +51,15 @@ def logout_view(request):
         messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
 
-def Check_out(request):
-    if request.method == "POST":
-        form = Don_hang(request.POST)
-        if form .is_valid():
-            form.save()
-            messages.success(request, "Đặt hàng thành công!")
-        else:
-            messages.error(request, "Có lỗi xảy ra, vui lòng kiểm tra lại.")
-    else:
-        form = Don_hang()
-        
-    return render(request, 'app/check_out.html', {"form": form})
+class CheckOutAPIView(APIView): 
+    def get(self, request): 
+        checkouts = Check_out.objects.all()  
+        serializer = CheckOutSerializer(checkouts, many=True)  
+        return Response(serializer.data)
+    
+    def post(self, request):  
+        serializer = CheckOutSerializer(data=request.data) 
+        if serializer.is_valid():  
+            serializer.save()  
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

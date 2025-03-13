@@ -2,7 +2,7 @@ from django import forms
 from .models import Register  
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponse
-from .models import Don_hang
+# from .models import Don_hang
 class RegisterForm(forms.ModelForm):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(),
@@ -46,12 +46,3 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("Tên đăng nhập hoặc mật khẩu không đúng!")
         return cleaned_data
 
-class Don_hang(forms.ModelForm):
-    class Meta:
-        model = Don_hang
-        fields = ['user_name', 'ten_don_hang', 'tong_tien',]
-        labels = {
-            'user_name': 'Người dùng',
-            'ten_don_hang': 'Tên đơn hàng',
-            'tong_tien': 'Tổng tiền',
-        }
