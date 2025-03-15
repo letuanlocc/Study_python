@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CheckOutSerializer
 from .models import Check_out
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
 # from .models import Don_hang
 # Create your views here.
 def home(request):
@@ -52,14 +54,23 @@ def logout_view(request):
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
 
 class CheckOutAPIView(APIView): 
+    queryset = Check_out.objects.all()
+    serializer_class = CheckOutSerializer
+    permission_classes = [IsAuthenticated]  # Chỉ user đã đăng nhập mới dùng được API
+
+    def get_serializer_context(self):
+        """Truyền request vào serializer để lấy user"""
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
     def get(self, request): 
         checkouts = Check_out.objects.all()  
         serializer = CheckOutSerializer(checkouts, many=True)  
         return Response(serializer.data)
     
     def post(self, request):  
-        serializer = CheckOutSerializer(data=request.data) 
-        if serializer.is_valid():  
-            serializer.save()  
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        mydata = CheckOutSerializer(data=request.data, context={"request": request})
+        if mydata.is_valid():  
+            mydata.save()  
+            return Response(mydata.data, status=status.HTTP_201_CREATED)
+        return Response(mydata.errors, status=status.HTTP_400_BAD_REQUEST)
