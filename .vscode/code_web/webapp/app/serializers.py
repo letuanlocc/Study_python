@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Check_out
+from django.core.exceptions import ObjectDoesNotExist
+from .forms import Register
 class CheckOutSerializer(serializers.ModelSerializer):
     valid_product = ['Em meo', 'Em vit hanh', 'Empe']
     class Meta:
@@ -14,7 +16,16 @@ class CheckOutSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Tên sản phẩm không hợp lệ")
         return value
     def create(self, validated_data):
-        user = self.context['request'].user  # Lấy user từ request
-        validated_data['user_name'] = user  # Gán user vào dữ liệu
+        request = self.context.get('request') # Lấy user từ request
+        if request:
+            user = request.session.get('user_name') 
+            if user:
+                try:
+                    user = Register.objects.get(user_name= user)  # Truy vấn user
+                    validated_data['user_name'] = user  # Gán object user vào
+                except ObjectDoesNotExist:  
+                    raise ValueError(f"Không tìm thấy user '{user}' trong Register")
+                # Lấy user từ session
+            validated_data['user_name'] = user  # Gán user vào dữ liệu
         return super().create(validated_data)
     

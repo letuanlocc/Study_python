@@ -10,6 +10,8 @@ from .serializers import CheckOutSerializer
 from .models import Check_out
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from django.core.exceptions import ObjectDoesNotExist
+from .forms import Register
 # from .models import Don_hang
 # Create your views here.
 def home(request):
@@ -46,6 +48,15 @@ def login_view(request):
         form = LoginForm()
 
     return render(request, "app/login.html", {"form": form})
+# def get_user_id_from_session(request):
+#     user_name = request.session.get('user_name')  # Lấy user_name từ session
+#     if user_name:
+#         try:
+#             user = Register.objects.get(user_name=user_name)  # Tìm user trong DB
+#             return user.id  # Lấy ID của user
+#         except ObjectDoesNotExist:
+#             return None  # Không tìm thấy user trong database
+#     return None  # Không có user_name trong session
 
 def logout_view(request):
     if "user_name" in request.session:
@@ -53,16 +64,7 @@ def logout_view(request):
         messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
 
-class CheckOutAPIView(APIView): 
-    queryset = Check_out.objects.all()
-    serializer_class = CheckOutSerializer
-    permission_classes = [IsAuthenticated]  # Chỉ user đã đăng nhập mới dùng được API
-
-    def get_serializer_context(self):
-        """Truyền request vào serializer để lấy user"""
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        return context
+class CheckOutAPIView(APIView):     
     def get(self, request): 
         checkouts = Check_out.objects.all()  
         serializer = CheckOutSerializer(checkouts, many=True)  
