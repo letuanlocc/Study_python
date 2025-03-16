@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Check_out
 from django.core.exceptions import ObjectDoesNotExist
-from .forms import Register
+from django.contrib.auth.models import User
 class CheckOutSerializer(serializers.ModelSerializer):
     valid_product = ['Em meo', 'Em vit hanh', 'Empe']
     class Meta:
@@ -21,7 +21,7 @@ class CheckOutSerializer(serializers.ModelSerializer):
             user = request.session.get('user_name') 
             if user:
                 try:
-                    user = Register.objects.get(user_name= user)  # Truy vấn user
+                    user = User.objects.get(user_name= user)  # Truy vấn user
                     validated_data['user_name'] = user  # Gán object user vào
                 except ObjectDoesNotExist:  
                     raise ValueError(f"Không tìm thấy user '{user}' trong Register")

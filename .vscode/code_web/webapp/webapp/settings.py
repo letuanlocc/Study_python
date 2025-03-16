@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,7 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Thời gian hết hạn của Access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Thời gian hết hạn của Refresh token
+    'ROTATE_REFRESH_TOKENS': True,  # Bật tính năng thay đổi Refresh token sau mỗi lần làm mới
+    'BLACKLIST_AFTER_ROTATION': True,  # Hủy Refresh token cũ sau mỗi lần làm mới
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

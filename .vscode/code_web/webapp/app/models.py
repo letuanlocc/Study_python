@@ -1,12 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-class Register(models.Model):
-    user_name = models.CharField(primary_key = True,max_length=100,unique=True)
-    pass_word = models.CharField(max_length=100)
-    class Meta:
-        db_table = 'register'
 class Check_out(models.Model):
-    user_name = models.ForeignKey(Register, on_delete=models.CASCADE,db_column='user_name')
+    user_name = models.ForeignKey(User, on_delete=models.CASCADE,db_column='user_name')
     name_product = models.CharField(max_length=50)
     price = models.IntegerField()
     

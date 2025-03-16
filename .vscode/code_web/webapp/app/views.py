@@ -11,7 +11,9 @@ from .models import Check_out
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.core.exceptions import ObjectDoesNotExist
-from .forms import Register
+from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
 # from .models import Don_hang
 # Create your views here.
 def home(request):
@@ -22,26 +24,29 @@ def link_view(request):
     return render(request, 'app/link.html')
 def menu_view(request):
     return render(request, 'app/menu.html') 
-def register_view(request):
+def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Đăng ký thành công! Hãy đăng nhập.")
-        else:
-            messages.error(request, "Có lỗi xảy ra, vui lòng kiểm tra lại.")
+            form.save()  # Lưu user vào Django Authentication
+            return redirect("login_page")  # Chuyển hướng sau khi đăng ký thành công
     else:
         form = RegisterForm()
-
+    
     return render(request, "app/register.html", {"form": form})
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
-            user_name = form.cleaned_data["user_name"]
-            request.session["user_name"] = user_name
-            messages.success(request, f"Chào mừng {user_name}, bạn đã đăng nhập thành công!")
-            return redirect("home_page")  # Chuyển hướng sau khi đăng nhập thành công
+            username = form.cleaned_data["user_name"]
+            password = form.cleaned_data["pass_word"]
+            user = User.objects.filter(username = username ).first() 
+            if user and user.check_password(password):
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                response = redirect("home_page")
+                response.set_cookie("access_token", access_token, max_age=3600, httponly=True, secure=True)
+                return response      # Chuyển hướng sau khi đăng nhập thành công
         else:
             messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
     else:

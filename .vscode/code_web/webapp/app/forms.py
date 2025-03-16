@@ -1,7 +1,8 @@
 from django import forms
-from .models import Register  
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponse
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 # from .models import Don_hang
 class RegisterForm(forms.ModelForm):
     confirm_password = forms.CharField(
@@ -10,28 +11,35 @@ class RegisterForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Register
-        fields = ['user_name', 'pass_word']  
-        # help_texts = {
-        #     'user_name': 'Tên đăng nhập không quá 100 ký tự',
-        #     'pass_word': '1 chữ hoa, 1 ký tự đặc biệt ',
-        # }
+        model = User  # Dùng Django User thay vì Register
+        fields = ['username', 'password']
         widgets = {
-            'pass_word': forms.PasswordInput(),
+            'password': forms.PasswordInput(),
         }
         labels = {
-            'user_name': 'Tên đăng nhập',
-            'pass_word': 'Mật khẩu',
+            'username': 'Tên đăng nhập',
+            'password': 'Mật khẩu',
         }
+        help_texts = {  # Thêm hướng dẫn cho username
+            'username': 'Chỉ chứa chữ cái, số và các ký tự @ . + - _ (Tối đa 150 ký tự)',
+        }
+
     def clean(self):
         cleaned_data = super().clean()
-        pass_word = cleaned_data.get("pass_word")
+        password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
 
-        if pass_word and confirm_password and pass_word != confirm_password:
+        if password and confirm_password and password != confirm_password:
             raise forms.ValidationError("Mật khẩu không khớp!")
 
         return cleaned_data  
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.password = make_password(self.cleaned_data["password"])  # Hash password
+        if commit:
+            user.save()
+        return user
 
 class LoginForm(forms.Form):
     user_name = forms.CharField(label="Tên đăng nhập", max_length=100)
@@ -39,10 +47,10 @@ class LoginForm(forms.Form):
     
     def clean(self):
         cleaned_data = super().clean()
-        user_name = cleaned_data.get("user_name")
-        pass_word = cleaned_data.get("pass_word")   
-        user = Register.objects.filter(user_name= user_name, pass_word= pass_word).first()
-        if not user:
+        username = cleaned_data.get("user_name")
+        password = cleaned_data.get("pass_word")   
+        user = User.objects.filter(username= username).first()
+        if not user or not check_password(password, user.password):
             raise forms.ValidationError("Tên đăng nhập hoặc mật khẩu không đúng!")
         return cleaned_data
 
