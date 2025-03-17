@@ -14,10 +14,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login
+import requests
+
 # from .models import Don_hang
 # Create your views here.
 def home(request):
-    return render(request, 'app/home.html')
+    username = request.user.username if request.user.is_authenticated else "Guest"
+    context = {"username": username}
+    return render(request, "app/home.html", context)
 def milk_view(request):
     return render(request, 'app/milk.html')
 def link_view(request):
@@ -40,36 +46,33 @@ def login_view(request):
         if form.is_valid():
             username = form.cleaned_data["user_name"]
             password = form.cleaned_data["pass_word"]
-            user = User.objects.filter(username = username ).first() 
-            if user and user.check_password(password):
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-                response = redirect("home_page")
-                response.set_cookie("access_token", access_token, max_age=3600, httponly=True, secure=True)
-                return response      # Chuyển hướng sau khi đăng nhập thành công
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                token_url = "http://127.0.0.1:8000/api/token/"
+                data = {"username": username, "password": password}
+                response = requests.post(token_url, json=data)
+                if response.status_code == 200:
+                    tokens = response.json()
+                    access_token = tokens["access"]
+                    
+                    # 🔥 Lưu token vào cookie
+                    res = redirect("home_page")
+                    res.set_cookie("access_token", access_token, httponly=True, secure=True, max_age=3600)
+                    return res
         else:
             messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
     else:
         form = LoginForm()
 
     return render(request, "app/login.html", {"form": form})
-# def get_user_id_from_session(request):
-#     user_name = request.session.get('user_name')  # Lấy user_name từ session
-#     if user_name:
-#         try:
-#             user = Register.objects.get(user_name=user_name)  # Tìm user trong DB
-#             return user.id  # Lấy ID của user
-#         except ObjectDoesNotExist:
-#             return None  # Không tìm thấy user trong database
-#     return None  # Không có user_name trong session
-
 def logout_view(request):
-    if "user_name" in request.session:
-        del request.session["user_name"]  # Xóa user_name khỏi session
-        messages.success(request, "Bạn đã đăng xuất thành công!")
+    logout(request)
+    messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
 
-class CheckOutAPIView(APIView):     
+class CheckOutAPIView(APIView): 
+    permission_classes = [IsAuthenticated]    
     def get(self, request): 
         checkouts = Check_out.objects.all()  
         serializer = CheckOutSerializer(checkouts, many=True)  

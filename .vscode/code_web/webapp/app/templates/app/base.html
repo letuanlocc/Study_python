@@ -6,8 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <html>
     <head>
-      {% if request.session.user_name %}
-           <h1>Chào {{ request.session.user_name }}</h1>
+      {%if username != "Guest" %}
+           <h1>Chào {{username}} </h1>
            <a href="{% url 'logout_page' %}">Đăng xuất</a>
       {% else %}
            <h1>Chào khách</h1>
