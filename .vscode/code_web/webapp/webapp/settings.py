@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from  dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -92,14 +95,14 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'web_app',
-        'HOST': 'localhost',      # Nếu SQL Server chạy trên máy
-        'PORT': '1433',           # Port mặc định của SQL Server
+        'NAME': os.getenv('DB_NAME'),        # Tên database bạn đã tạo
+        'HOST': os.getenv('DB_HOST'),      # Nếu SQL Server chạy trên máy
+        'PORT': os.getenv('DB_PORT'),           # Port mặc định của SQL Server
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Kiểm tra driver đang dùng
         },
-        'USER': 'tuanloc',    # Thay 'your_username' bằng tên đăng nhập SQL của bạn
-        'PASSWORD': '2612',  # Thay 'your_password' bằng mật khẩu của bạn
+        'USER': os.getenv('DB_USER'),    # Thay 'your_username' bằng tên đăng nhập SQL của bạn
+        'PASSWORD': os.getenv('DB_PASSWORD'),  # Thay 'your_password' bằng mật khẩu của bạn
     }
 }
 
