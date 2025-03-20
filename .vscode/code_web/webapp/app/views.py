@@ -6,8 +6,9 @@ from .forms import LoginForm
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CheckOutSerializer
-from .models import Check_out
+from django.http import JsonResponse
+from .serializers import  CheckOutSerializer
+from .models import Checkout
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,9 +18,11 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate, login
 import requests
-
+from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication   
 # from .models import Don_hang
 # Create your views here.
+
 def home(request):
     username = request.user.username if request.user.is_authenticated else "Guest"
     context = {"username": username}
@@ -39,14 +42,14 @@ def register(request):
     else:
         form = RegisterForm()
     
-    return render(request, "app/register.html", {"form": form})
 def login_view(request):
     if request.method == "POST":
+        print("DEBUG: Form nhận request POST", request.POST)
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data["user_name"]
             password = form.cleaned_data["pass_word"]
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=username, password=password,)
             if user:
                 login(request, user)
                 token_url = "http://127.0.0.1:8000/api/token/"
@@ -58,27 +61,33 @@ def login_view(request):
                     
                     # 🔥 Lưu token vào cookie
                     res = redirect("home_page")
-                    res.set_cookie("access_token", access_token, httponly=True, secure=True, max_age=3600)
+                    res.set_cookie("access_token", access_token, httponly=True, secure=True, max_age=3600, samesite="Lax")
                     return res
         else:
+            print("DEBUG: Đăng nhập thất bại!") 
             messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
     else:
         form = LoginForm()
-
     return render(request, "app/login.html", {"form": form})
 def logout_view(request):
     logout(request)
     messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
-
-class CheckOutAPIView(APIView): 
-    permission_classes = [IsAuthenticated]    
+class CheckOutAPIView(APIView):  
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]   
     def get(self, request): 
-        checkouts = Check_out.objects.all()  
+        print(f"DEBUG: User: {request.user}, Authenticated: {request.user.is_authenticated}")  
+        checkouts = Checkout.objects.all()  
         serializer = CheckOutSerializer(checkouts, many=True)  
         return Response(serializer.data)
     
     def post(self, request):  
+        print(f"DEBUG: sessionid = {request.session.session_key}")
+        print(f"DEBUG: request.user trong view: {request.user}, authenticated: {request.user.is_authenticated}")
+
+        token = request.COOKIES.get("access_token")
+        print(f"DEBUG: Token từ cookie: {token}")
         mydata = CheckOutSerializer(data=request.data, context={"request": request})
         if mydata.is_valid():  
             mydata.save()  

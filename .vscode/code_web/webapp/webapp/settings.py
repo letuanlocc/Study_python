@@ -52,10 +52,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Thời gian hết hạn của Access token
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Thời gian hết hạn của Refresh token
-    'ROTATE_REFRESH_TOKENS': True,  # Bật tính năng thay đổi Refresh token sau mỗi lần làm mới
-    'BLACKLIST_AFTER_ROTATION': True,  # Hủy Refresh token cũ sau mỗi lần làm mới
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Token sống trong 5 phút
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token sống 7 ngày
+    'ROTATE_REFRESH_TOKENS': True,  # 🔥 Tự động cấp refresh token mới
+    'BLACKLIST_AFTER_ROTATION': True,  # 🔥 Token cũ sẽ bị vô hiệu hóa
 }
 
 MIDDLEWARE = [
@@ -147,3 +147,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SESSION_COOKIE_SECURE = False  # Nếu đang test local, tránh lỗi HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_NAME = "sessionid"
+SESSION_SAVE_EVERY_REQUEST = True

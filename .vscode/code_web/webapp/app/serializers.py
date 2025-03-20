@@ -1,31 +1,34 @@
 from rest_framework import serializers
-from .models import Check_out
+from .models import Checkout
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+import sys
+from django.contrib.auth import get_user_model
 class CheckOutSerializer(serializers.ModelSerializer):
     valid_product = ['Em meo', 'Em vit hanh', 'Empe']
     class Meta:
-        model = Check_out
-        fields = ['name_product', 'price']
+        model = Checkout
+        fields = ['nameproduct', 'price',]
     def validate_price(self,value):
         if value < 0:
             raise serializers.ValidationError("Giá không hợp lệ")
         return value
-    def validate_name_product(self,value):
+    def validate_nameproduct(self,value):
         if value not in self.valid_product:
             raise serializers.ValidationError("Tên sản phẩm không hợp lệ")
         return value
     def create(self, validated_data):
-        request = self.context.get('request') # Lấy user từ request
-        if request:
-            user = request.session.get('user_name') 
-            if user:
-                try:
-                    user = User.objects.get(user_name= user)  # Truy vấn user
-                    validated_data['user_name'] = user  # Gán object user vào
-                except ObjectDoesNotExist:  
-                    raise ValueError(f"Không tìm thấy user '{user}' trong Register")
-                # Lấy user từ session
-            validated_data['user_name'] = user  # Gán user vào dữ liệu
+        request = self.context.get('request')# Lấy user từ request
+        print(f"tao in ra : {request.user.is_authenticated}")
+        if request:  
+                user_id = int(request.session.get('_auth_user_id'))
+                user_instance = User.objects.get(id=user_id)
+                validated_data['id_username'] = user_instance
+                print("Validated data after adding user_id:", validated_data)
+                validated_data['username'] = user_instance
+                print("Validated data after adding user_id:", validated_data)
+                print(validated_data) 
+                    # Gán object user vào
+                # Lấy user từ session  # Gán user vào dữ liệu
         return super().create(validated_data)
     
