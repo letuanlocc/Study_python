@@ -19,7 +19,6 @@ class CheckOutSerializer(serializers.ModelSerializer):
         return value
     def create(self, validated_data):
         request = self.context.get('request')# Lấy user từ request
-        print(f"tao in ra : {request.user.is_authenticated}")
         if request:  
                 user_id = int(request.session.get('_auth_user_id'))
                 user_instance = User.objects.get(id=user_id)

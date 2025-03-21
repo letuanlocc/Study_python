@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <h1>Chào {{ request.session.user_name }}</h1>
+    <h1>Chào {{ username }}</h1>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Món Ăn</title>
@@ -215,6 +215,53 @@
         } else {
             cartDetails.style.display = "none";
         }
+    }
+    document.getElementById("checkout-btn").addEventListener("click", function (event) {
+        event.preventDefault();  // Ngăn chặn chuyển trang
+    
+        if (cartItems.length === 0) {
+            alert("Giỏ hàng trống!");
+            return;
+        }
+    
+        fetch("/api/checkouts/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken()  // Gửi CSRF token nếu cần
+            },
+            body: JSON.stringify({
+                cartItems: cartItems.map(item => ({
+                    nameproduct: item.name,  // Lấy tên sản phẩm từ giỏ hàng
+                    price: item.price        // Lấy giá sản phẩm từ giỏ hàng
+                }))
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || "Có lỗi xảy ra!");
+            cartItems = [];  // Xóa giỏ hàng sau khi thanh toán
+            cartCount = 0;
+            document.getElementById('cart-count').textContent = cartCount;
+            document.getElementById('cart-items').innerHTML = "";
+            document.getElementById('total-price').textContent = "0";
+        })
+        .catch(error => console.error("Lỗi:", error));
+    });
+    
+    // Hàm lấy CSRF token (nếu Django bật CSRF protection)
+    function getCSRFToken() {
+        let cookieValue = null;
+        let cookies = document.cookie.split(";");
+    
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.startsWith("csrftoken=")) {
+                cookieValue = cookie.substring("csrftoken=".length, cookie.length);
+                break;
+            }
+        }
+        return cookieValue;
     }
     
 </script>

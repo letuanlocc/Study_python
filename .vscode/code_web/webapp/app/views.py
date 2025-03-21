@@ -20,6 +20,9 @@ from django.contrib.auth import authenticate, login
 import requests
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication   
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+import json
+from django.views.decorators.csrf import csrf_exempt
 # from .models import Don_hang
 # Create your views here.
 
@@ -32,16 +35,20 @@ def milk_view(request):
 def link_view(request):
     return render(request, 'app/link.html')
 def menu_view(request):
-    return render(request, 'app/menu.html') 
+    username = request.user.username if request.user.is_authenticated else "Guest"
+    context = {"username": username}
+    return render(request, 'app/menu.html',context) 
 def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()  # Lưu user vào Django Authentication
             return redirect("login_page")  # Chuyển hướng sau khi đăng ký thành công
+        else:
+             return render(request, 'app/register.html', {'form': form})
     else:
         form = RegisterForm()
-    
+    return render(request, 'app/register.html', {'form': form})
 def login_view(request):
     if request.method == "POST":
         print("DEBUG: Form nhận request POST", request.POST)
@@ -74,8 +81,8 @@ def logout_view(request):
     messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
 class CheckOutAPIView(APIView):  
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]   
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]   
     def get(self, request): 
         print(f"DEBUG: User: {request.user}, Authenticated: {request.user.is_authenticated}")  
         checkouts = Checkout.objects.all()  
@@ -83,13 +90,13 @@ class CheckOutAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request):  
-        print(f"DEBUG: sessionid = {request.session.session_key}")
-        print(f"DEBUG: request.user trong view: {request.user}, authenticated: {request.user.is_authenticated}")
-
-        token = request.COOKIES.get("access_token")
-        print(f"DEBUG: Token từ cookie: {token}")
-        mydata = CheckOutSerializer(data=request.data, context={"request": request})
-        if mydata.is_valid():  
-            mydata.save()  
-            return Response(mydata.data, status=status.HTTP_201_CREATED)
-        return Response(mydata.errors, status=status.HTTP_400_BAD_REQUEST)
+        cart_items = request.data.get('cartItems', [])
+        for item in cart_items:
+            nameproduct = item.get('nameproduct', 'Unknown Product')  # Lấy tên sản phẩm
+            price = item.get('price', 0)
+            user_id = int(request.session.get('_auth_user_id'))
+            user_instance = User.objects.get(id=user_id)
+            checkout = Checkout.objects.create(nameproduct=nameproduct, price=price, id_username=user_instance,username=user_instance.username)
+            checkout.save()
+        print("da luu vao databse")
+        return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
