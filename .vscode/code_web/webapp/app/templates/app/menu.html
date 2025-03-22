@@ -171,12 +171,16 @@
 <script>
     let cartCount = 0;  // Biến để theo dõi số lượng món ăn trong giỏ hàng
     let cartItems = []; // Mảng chứa các món ăn trong giỏ hàng
-
+    let cart = {}
     function addToCart(itemName, itemPrice, button) {
         // Thêm món ăn vào giỏ hàng
         cartCount++;
         cartItems.push({ name: itemName, price: itemPrice });
-
+        if(cart[itemName]){
+            cart[itemName].quantity +=1
+        }else{
+            cart[itemName] = { price: itemPrice, quantity: 1 };
+        }
         // Cập nhật số lượng giỏ hàng
         document.getElementById('cart-count').textContent = cartCount;
 
@@ -185,8 +189,7 @@
 
         // Thay đổi nội dung và style của button khi nhấn
         button.innerHTML = "Đã thêm vào giỏ hàng";
-        button.classList.add("added");
-        button.disabled = true; // Tắt button sau khi thêm
+        button.classList.add("added"); // Tắt button sau khi thêm
     }
 
     function updateCartDetails() {
@@ -195,13 +198,12 @@
         
         cartItemsList.innerHTML = ""; // Xóa danh sách cũ
         let total = 0; // Biến lưu tổng tiền
-    
-        cartItems.forEach(item => {
+        for (let item in cart){
             const li = document.createElement('li');
-            li.textContent = `${item.name} - ${item.price.toLocaleString()} VNĐ`;
+            li.textContent = `${item} x${cart[item].quantity} - ${cart[item].price.toLocaleString()} VNĐ`;
             cartItemsList.appendChild(li);
-            total += item.price; // Cộng dồn giá tiền
-        });
+            total += cart[item].price * cart[item].quantity; // Cộng dồn giá tiền
+        }
     
         // Cập nhật tổng tiền
         totalPriceElement.textContent = total.toLocaleString();
@@ -231,9 +233,10 @@
                 "X-CSRFToken": getCSRFToken()  // Gửi CSRF token nếu cần
             },
             body: JSON.stringify({
-                cartItems: cartItems.map(item => ({
-                    nameproduct: item.name,  // Lấy tên sản phẩm từ giỏ hàng
-                    price: item.price        // Lấy giá sản phẩm từ giỏ hàng
+                cart: Object.keys(cart).map(key => ({
+                    nameproduct: key,  // Lấy tên sản phẩm từ giỏ hàng
+                    price: cart[key].price,
+                    quantity: cart[key].quantity      // Lấy giá sản phẩm từ giỏ hàng
                 }))
             })
         })

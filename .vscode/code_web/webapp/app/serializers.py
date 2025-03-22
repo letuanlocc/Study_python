@@ -8,7 +8,7 @@ class CheckOutSerializer(serializers.ModelSerializer):
     valid_product = ['Em meo', 'Em vit hanh', 'Empe']
     class Meta:
         model = Checkout
-        fields = ['nameproduct', 'price',]
+        fields = ['nameproduct', 'price', 'quantity']
     def validate_price(self,value):
         if value < 0:
             raise serializers.ValidationError("Giá không hợp lệ")

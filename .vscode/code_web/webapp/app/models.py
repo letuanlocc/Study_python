@@ -6,6 +6,7 @@ class Checkout(models.Model):
     username = models.CharField(max_length=150)
     nameproduct = models.CharField(max_length=50)
     price = models.IntegerField()
+    quantity = models.IntegerField(default=1)
     
     # @property
     # def total(self):

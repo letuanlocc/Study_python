@@ -90,13 +90,23 @@ class CheckOutAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request):  
-        cart_items = request.data.get('cartItems', [])
-        for item in cart_items:
-            nameproduct = item.get('nameproduct', 'Unknown Product')  # Lấy tên sản phẩm
+        # cart_items = request.data.get('cartItems', [])
+        cart = request.data.get('cart', [])
+        print("Dữ liệu cart nhận được:", cart)
+        for item in cart:
+            nameproduct = item.get('nameproduct')
             price = item.get('price', 0)
             user_id = int(request.session.get('_auth_user_id'))
             user_instance = User.objects.get(id=user_id)
-            checkout = Checkout.objects.create(nameproduct=nameproduct, price=price, id_username=user_instance,username=user_instance.username)
+            quantity = item.get('quantity', 1)
+            checkout = Checkout.objects.create(
+                nameproduct= nameproduct, 
+                price= price, 
+                id_username=user_instance,
+                username=user_instance.username,
+                quantity = quantity 
+            )
+            print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}")
             checkout.save()
         print("da luu vao databse")
         return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
