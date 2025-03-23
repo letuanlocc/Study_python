@@ -1,0 +1,35 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Ngăn form tải lại trang
+    
+            let formData = new FormData(this);
+    
+            fetch("{% url 'search' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;  // Chuyển hướng nếu có sản phẩm
+                } else if (data.error) {
+                    showToast(data.error);  // Gọi hàm hiển thị thông báo
+                }
+            })
+            .catch(error => console.error("Lỗi:", error));
+        });
+    });
+    
+    // Hàm hiển thị thông báo đẩy
+    function showToast(message) {
+        let toast = document.createElement("div");
+        toast.innerText = message;
+        toast.style.position = "fixed";
+        toast.style.bottom = "20px";
+        toast.style.left = "50%";
+        toast.style.transform
+    

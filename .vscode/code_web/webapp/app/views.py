@@ -34,6 +34,16 @@ def milk_view(request):
     return render(request, 'app/milk.html')
 def link_view(request):
     return render(request, 'app/link.html')
+def search(request):
+    if request.method == "POST":
+        searched = request.POST.get("search", "")
+        checkout = Checkout.objects.filter(nameproduct__contains = searched)
+        if checkout.exists():
+            return redirect("menu_page")
+        else:
+            messages.error(request, "Sản phẩm không có trong menu!")  # Gửi thông báo lỗi
+            return redirect("home_page")
+    return render(request, "app/search.html")
 def menu_view(request):
     username = request.user.username if request.user.is_authenticated else "Guest"
     context = {"username": username}
@@ -42,8 +52,8 @@ def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()  # Lưu user vào Django Authentication
-            return redirect("login_page")  # Chuyển hướng sau khi đăng ký thành công
+            form.save()  
+            return redirect("login_page")  
         else:
              return render(request, 'app/register.html', {'form': form})
     else:
@@ -79,7 +89,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "Bạn đã đăng xuất thành công!")
-    return redirect("home_page")  # Quay về trang chủ sau khi đăng xuất
+    return redirect("home_page")  
 class CheckOutAPIView(APIView):  
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]   
