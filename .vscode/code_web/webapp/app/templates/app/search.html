@@ -1,35 +1,273 @@
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Ngăn form tải lại trang
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <h1>Chào {{ username }}</h1>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .menu-container {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .menu-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .menu-item {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 15px;
+            padding: 15px;
+            width: 250px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .menu-item img {
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            object-fit: cover;
+        }
+        .menu-item h3 {
+            margin: 10px 0;
+        }
+        .menu-item p {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .menu-item:hover {
+            transform: scale(1.1);
+        }
+        .add-to-cart-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .added {
+            background-color: #6c757d;
+        }
+
+        /* Giỏ hàng hiển thị ở góc phải */
+        .cart-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .cart-container .cart-count {
+            background-color: #28a745;
+            color: white;
+            border-radius: 50%;
+            padding: 10px 15px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        /* Hiển thị giỏ hàng khi nhấn vào */
+        .cart-details {
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .cart-details ul {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .cart-details ul li {
+            margin-bottom: 10px;
+        }
+
+        .cart-details .close-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <div class="menu-list">
+            {%if search == "empe"%}
+                <div class="menu-item">
+                    <img src="{% static 'app/images/empe.jpg' %}" alt="Empe">
+                    <h3>Empe</h3>
+                    <p>300.000 VNĐ</p>
+                    <button class="add-to-cart-btn" onclick="addToCart('Empe', 300000, this)">Thêm vào giỏ hàng</button>
+                </div>
+            {%endif%}
+            {%if search == "em vit hanh"%}
+            <div class="menu-item">
+                <img src="{% static 'app/images/vithanh.jpg' %}" alt="Em vit hanh">
+                <h3>Em vit hanh</h3>
+                <p>150.000 VNĐ</p>
+                <button class="add-to-cart-btn" onclick="addToCart('Em vit hanh', 150000, this)">Thêm vào giỏ hàng</button>
+            </div>
+            {%endif%}
+            {%if search == "em meo"%}
+            <div class="menu-item">
+                <img src="{% static 'app/images/emmeo.jpg' %}" alt="Em meo">
+                <h3>Em meo</h3>
+                <p>200.000 VNĐ</p>
+                <button class="add-to-cart-btn" onclick="addToCart('Em meo', 200000, this)">Thêm vào giỏ hàng</button>
+            </div>
+            {%endif%}
+        </div>
+    </div>
+    <div class="cart-container" onclick="toggleCartDetails()">
+        Giỏ hàng
+        <div class="cart-count" id="cart-count">0</div>
+    </div>
     
-            let formData = new FormData(this);
+    <!-- Chi tiết giỏ hàng -->
+    <div class="cart-details" id="cart-details">
+        <button class="close-btn" onclick="toggleCartDetails()">Đóng</button>
+        <h3>Giỏ hàng</h3>
+        <ul id="cart-items">
+            <!-- Các món ăn sẽ được thêm vào đây -->
+        </ul>
+        <h4>Tổng tiền: <span id="total-price">0</span> VNĐ</h4>
+        <a href="{% url 'checkouts' %}" id="checkout-btn">
+            <button>Thanh toán</button>
+        </a>
+    </div>
     
-            fetch("{% url 'search' %}", {
+    <script>
+        let cartCount = 0;  // Biến để theo dõi số lượng món ăn trong giỏ hàng
+        let cartItems = []; // Mảng chứa các món ăn trong giỏ hàng
+        let cart = {}
+        function addToCart(itemName, itemPrice, button) {
+            // Thêm món ăn vào giỏ hàng
+            cartCount++;
+            cartItems.push({ name: itemName, price: itemPrice });
+            if(cart[itemName]){
+                cart[itemName].quantity +=1
+            }else{
+                cart[itemName] = { price: itemPrice, quantity: 1 };
+            }
+            // Cập nhật số lượng giỏ hàng
+            document.getElementById('cart-count').textContent = cartCount;
+    
+            // Cập nhật chi tiết giỏ hàng
+            updateCartDetails();
+    
+            // Thay đổi nội dung và style của button khi nhấn
+            button.innerHTML = "Đã thêm vào giỏ hàng";
+            button.classList.add("added"); // Tắt button sau khi thêm
+        }
+    
+        function updateCartDetails() {
+            const cartItemsList = document.getElementById('cart-items');
+            const totalPriceElement = document.getElementById('total-price');
+            
+            cartItemsList.innerHTML = ""; // Xóa danh sách cũ
+            let total = 0; // Biến lưu tổng tiền
+            for (let item in cart){
+                const li = document.createElement('li');
+                li.textContent = `${item} x${cart[item].quantity} - ${cart[item].price.toLocaleString()} VNĐ`;
+                cartItemsList.appendChild(li);
+                total += cart[item].price * cart[item].quantity; // Cộng dồn giá tiền
+            }
+        
+            // Cập nhật tổng tiền
+            totalPriceElement.textContent = total.toLocaleString();
+        }
+        
+        function toggleCartDetails() {
+            // Hiển thị hoặc ẩn giỏ hàng
+            const cartDetails = document.getElementById('cart-details');
+            if (cartDetails.style.display === "none" || cartDetails.style.display === "") {
+                cartDetails.style.display = "block";
+            } else {
+                cartDetails.style.display = "none";
+            }
+        }
+        document.getElementById("checkout-btn").addEventListener("click", function (event) {
+            event.preventDefault();  // Ngăn chặn chuyển trang
+        
+            if (cartItems.length === 0) {
+                alert("Giỏ hàng trống!");
+                return;
+            }
+        
+            fetch("/api/checkouts/", {
                 method: "POST",
-                body: formData,
                 headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()  // Gửi CSRF token nếu cần
+                },
+                body: JSON.stringify({
+                    cart: Object.keys(cart).map(key => ({
+                        nameproduct: key,  // Lấy tên sản phẩm từ giỏ hàng
+                        price: cart[key].price,
+                        quantity: cart[key].quantity      // Lấy giá sản phẩm từ giỏ hàng
+                    }))
+                })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;  // Chuyển hướng nếu có sản phẩm
-                } else if (data.error) {
-                    showToast(data.error);  // Gọi hàm hiển thị thông báo
-                }
+                alert(data.message || "Có lỗi xảy ra!");
+                cartItems = [];  // Xóa giỏ hàng sau khi thanh toán
+                cartCount = 0;
+                document.getElementById('cart-count').textContent = cartCount;
+                document.getElementById('cart-items').innerHTML = "";
+                document.getElementById('total-price').textContent = "0";
             })
             .catch(error => console.error("Lỗi:", error));
         });
-    });
-    
-    // Hàm hiển thị thông báo đẩy
-    function showToast(message) {
-        let toast = document.createElement("div");
-        toast.innerText = message;
-        toast.style.position = "fixed";
-        toast.style.bottom = "20px";
-        toast.style.left = "50%";
-        toast.style.transform
-    
+        
+        // Hàm lấy CSRF token (nếu Django bật CSRF protection)
+        function getCSRFToken() {
+            let cookieValue = null;
+            let cookies = document.cookie.split(";");
+        
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.startsWith("csrftoken=")) {
+                    cookieValue = cookie.substring("csrftoken=".length, cookie.length);
+                    break;
+                }
+            }
+            return cookieValue;
+        }
+        
+    </script>    
+</body>
+</html>

@@ -36,12 +36,17 @@ def link_view(request):
     return render(request, 'app/link.html')
 def search(request):
     if request.method == "POST":
-        searched = request.POST.get("search", "")
-        checkout = Checkout.objects.filter(nameproduct__contains = searched)
+        searched = request.POST.get("search", "").strip().lower()
+        checkout = Checkout.objects.filter(nameproduct__icontains = searched)
+        username = request.user.username if request.user.is_authenticated else "Guest"
+        context = {
+            "username" : username
+        }
         if checkout.exists():
-            return redirect("menu_page")
+            context.update({'result' : checkout})
+            return render(request, "app/search.html", context)
         else:
-            messages.error(request, "Sản phẩm không có trong menu!")  # Gửi thông báo lỗi
+            messages.error(request,"San pham khong co trong gio hang !")  # Gửi thông báo lỗi
             return redirect("home_page")
     return render(request, "app/search.html")
 def menu_view(request):

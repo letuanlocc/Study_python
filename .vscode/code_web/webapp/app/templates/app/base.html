@@ -79,7 +79,7 @@
                     <a class="nav-link" href="{% url 'menu_page' %}">Menu</a>
                   </li>
                 </ul>
-                <form class="d-flex" role="search" method = POST action ="{% url 'search' %}">
+                <form class="d-flex" role="search" method = POST action ="{% url 'search_page' %}">
                    {% csrf_token %}
                   <input class="form-control me-2" type="search" name = "search" placeholder="Search" aria-label="search">
                   <button class="btn btn-outline-success" type="submit">Search</button>
@@ -118,5 +118,12 @@
         <footer class = "container-fluid bg-white text-center fixed-bottom p-2 mt-5" >
             <h4> <em> Copyright 2022 </em> <h4>
         </footer>
+        {% if messages %}
+        <script>
+        {% for message in messages %}
+           alert("{{ message }}");
+        {% endfor %}
+       </script>
+     {% endif %}
     </body>
 </html>
