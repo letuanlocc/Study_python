@@ -37,7 +37,7 @@ def link_view(request):
 def search(request):
     if request.method == "POST":
         searched = request.POST.get("search", "").strip().lower()
-        checkout = Checkout.objects.filter(nameproduct__icontains = searched)
+        checkout = Checkout.objects.filter(nameproduct__icontains = searched).values("nameproduct","price").distinct()
         username = request.user.username if request.user.is_authenticated else "Guest"
         context = {
             "username" : username
