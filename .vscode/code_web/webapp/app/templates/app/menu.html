@@ -121,34 +121,28 @@
             cursor: pointer;
             float: right;
         }
+        .menu-item p:nth-of-type(1) {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
-
-<div class="menu-container">
-    <h1>Best choice</h1>
-    <div class="menu-list">
-        <div class="menu-item">
-            <img src="{% static 'app/images/vithanh.jpg' %}" alt="Em vit hanh">
-            <h3>Em vit hanh</h3>
-            <p>150.000 VNĐ</p>
-            <button class="add-to-cart-btn" onclick="addToCart('Em vit hanh', 150000, this)">Thêm vào giỏ hàng</button>
-        </div>
-        <div class="menu-item">
-            <img src="{% static 'app/images/empe.jpg' %}" alt="Empe">
-            <h3>Empe</h3>
-            <p>300.000 VNĐ</p>
-            <button class="add-to-cart-btn" onclick="addToCart('Empe', 300000, this)">Thêm vào giỏ hàng</button>
-        </div>
-        <div class="menu-item">
-            <img src="{% static 'app/images/emmeo.jpg' %}" alt="Em meo">
-            <h3>Em meo</h3>
-            <p>200.000 VNĐ</p>
-            <button class="add-to-cart-btn" onclick="addToCart('Em meo', 200000, this)">Thêm vào giỏ hàng</button>
+    <div class="menu-container">
+        <div class="menu-list">
+        {% if result %}
+            {% for item in result %}
+                    <div class="menu-item">
+                        <img src="{% static 'app/images/'%}{{ item.nameproduct }}.jpg " alt="{{ item.nameproduct }}">
+                        <h3>{{ item.nameproduct }}</h3>
+                        <p>{{ item.price }} VND </p>
+                        <button class="add-to-cart-btn" onclick="addToCart('{{ item.nameproduct }}',{{ item.price }}, this)">Thêm vào giỏ hàng</button>
+                    </div>
+            {% endfor %}
+        {%endif%}
         </div>
     </div>
-</div>
-
 <!-- Giỏ hàng hiển thị góc phải -->
 <div class="cart-container" onclick="toggleCartDetails()">
     Giỏ hàng
@@ -234,9 +228,9 @@
             },
             body: JSON.stringify({
                 cart: Object.keys(cart).map(key => ({
-                    nameproduct: key,  // Lấy tên sản phẩm từ giỏ hàng
+                    nameproduct: key,  
                     price: cart[key].price,
-                    quantity: cart[key].quantity      // Lấy giá sản phẩm từ giỏ hàng
+                    quantity: cart[key].quantity      
                 }))
             })
         })

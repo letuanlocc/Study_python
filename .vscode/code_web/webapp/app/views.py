@@ -22,7 +22,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication   
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 import json
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404, redirect
+from .models import Warehouse
 # from .models import Don_hang
 # Create your views here.
 
@@ -37,22 +40,27 @@ def link_view(request):
 def search(request):
     if request.method == "POST":
         searched = request.POST.get("search", "").strip().lower()
-        checkout = Checkout.objects.filter(nameproduct__icontains = searched).values("nameproduct","price").distinct()
+        warehouse = Warehouse.objects.filter(nameproduct__icontains = searched).values("nameproduct","price").distinct()
         username = request.user.username if request.user.is_authenticated else "Guest"
         context = {
             "username" : username
         }
-        if checkout.exists():
-            context.update({'result' : checkout})
+        if warehouse.exists():
+            context.update({'result' : warehouse})
+            print(context)
             return render(request, "app/search.html", context)
         else:
             messages.error(request,"San pham khong co trong gio hang !")  # Gửi thông báo lỗi
             return redirect("home_page")
     return render(request, "app/search.html")
 def menu_view(request):
-    username = request.user.username if request.user.is_authenticated else "Guest"
-    context = {"username": username}
-    return render(request, 'app/menu.html',context) 
+        warehouse = Warehouse.objects.all()
+        username = request.user.username if request.user.is_authenticated else "Guest"
+        context = {
+            "username" : username,
+            "result" : warehouse
+        }
+        return render(request, "app/menu.html", context)
 def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -110,11 +118,13 @@ class CheckOutAPIView(APIView):
         print("Dữ liệu cart nhận được:", cart)
         for item in cart:
             nameproduct = item.get('nameproduct')
+            id_product = Warehouse.objects.filter(nameproduct = nameproduct).first()
             price = item.get('price', 0)
             user_id = int(request.session.get('_auth_user_id'))
             user_instance = User.objects.get(id=user_id)
             quantity = item.get('quantity', 1)
             checkout = Checkout.objects.create(
+                id_product = id_product,
                 nameproduct= nameproduct, 
                 price= price, 
                 id_username=user_instance,
@@ -125,3 +135,20 @@ class CheckOutAPIView(APIView):
             checkout.save()
         print("da luu vao databse")
         return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
+def is_staff(user):
+    return user.is_staff
+def is_admin_or_staff(user):
+    return user.is_superuser or user.is_staff
+@login_required
+def Warehouse_view(request):
+    print(f"User: {request.user}, Staff: {request.user.is_staff}, Superuser: {request.user.is_superuser}")
+    if not is_admin_or_staff(request.user):
+        messages.error(request,"Má không có đủ quyền để mà vô đây !")
+        return redirect("home_page")
+    warehouse_list = Warehouse.objects.all()
+    context = {
+        'warehouse' : warehouse_list,
+        'is_superuser': request.user.is_superuser,
+        'is_staff': request.user.is_staff,
+    }
+    return render(request, 'app/warehouse.html', context)

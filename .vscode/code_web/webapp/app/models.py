@@ -1,17 +1,26 @@
 from django.db import models
 from django.contrib.auth.models import User
+
+class Warehouse(models.Model):
+    id_product = models.CharField(max_length=50, primary_key=True)
+    nameproduct = models.CharField(max_length=50)
+    price = models.IntegerField()
+    origin = models.CharField(max_length=40)
+    date_time = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'warehouse'
+        
 class Checkout(models.Model):
-    id_username = models.ForeignKey(User, on_delete=models.CASCADE, db_column='id_username') 
-    id_checkout = models.AutoField(primary_key=True)
+    id_checkout = models.AutoField(primary_key=True)  
+    id_product = models.ForeignKey(Warehouse, on_delete=models.CASCADE, db_column='id_product')
+    id_username = models.ForeignKey(User, on_delete=models.CASCADE, db_column='id_username')
     username = models.CharField(max_length=150)
     nameproduct = models.CharField(max_length=50)
     price = models.IntegerField()
-    quantity = models.IntegerField(default=1)
-    
-    # @property
-    # def total(self):
-    #     return Check_out.objects.aggregate(total=models.Sum(models.F('price')))['total'] #ra 45000 thay vi {total: 45000}
-    
+    quantity = models.IntegerField(null=True, blank=True)  
+    date_time = models.DateField(auto_now_add=True)  
     class Meta:
         db_table = 'Checkout'
-    
+        

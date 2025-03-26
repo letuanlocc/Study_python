@@ -3,7 +3,8 @@ from django.contrib.auth.hashers import check_password
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-# from .models import Don_hang
+
+from .models import Warehouse
 class RegisterForm(forms.ModelForm):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(),
@@ -54,3 +55,7 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("Tên đăng nhập hoặc mật khẩu không đúng!")
         return cleaned_data
 
+# class Warehouse(forms.ModelForm):
+#     class Meta:
+#         model = Warehouse
+#         fields = ['nameproduct', 'price']

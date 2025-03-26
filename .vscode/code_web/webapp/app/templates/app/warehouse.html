@@ -1,0 +1,31 @@
+{% comment %} {% extends 'app/base.html' %}
+{% extends 'app/home.html' %} {% endcomment %}
+{% block content %}
+    <h1>Quản lý đơn hàng</h1>
+    {% if is_staff %}
+        <a href="{% url 'warehouse_page' %}"> Vào kho hàng</a>
+    {% endif %}
+    <table border="1">
+        <tr>
+            <th>Tên sản phẩm</th>
+            <th>Giá</th>
+            <th>Hình ảnh</th>
+            {% if is_superuser %}
+                <th>Hành động</th>
+            {% endif %}
+        </tr>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.product_name }}</td>
+            <td>{{ order.price }}</td>
+            <td><img src="{{ order.image.url }}" width="50"></td>
+            {% if is_superuser %}
+                <td>
+                    <a href="{% url 'edit_order' order.id %}">✏ Chỉnh sửa</a>
+                </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    
+    </table>
+{% endblock %}
