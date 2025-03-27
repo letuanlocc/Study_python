@@ -19,5 +19,5 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('search/', views.search, name='search_page'),
     path('warehouse/', views.Warehouse_view, name='warehouse_page'),
-    
+    path("upload/", views.upload_image, name="upload"),
 ]

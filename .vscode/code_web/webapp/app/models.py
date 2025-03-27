@@ -1,12 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
 
+    
 class Warehouse(models.Model):
     id_product = models.CharField(max_length=50, primary_key=True)
     nameproduct = models.CharField(max_length=50)
     price = models.IntegerField()
     origin = models.CharField(max_length=40)
+    instock = models.IntegerField()
     date_time = models.DateTimeField(auto_now_add=True)
+    image = models.CharField(max_length=255, null=True, blank=True)
     
     class Meta:
         managed = False

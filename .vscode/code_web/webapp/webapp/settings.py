@@ -14,6 +14,9 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from  dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +47,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     "django_extensions",
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 REST_FRAMEWORK = {
@@ -58,6 +63,18 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,  # 🔥 Tự động cấp refresh token mới
     'BLACKLIST_AFTER_ROTATION': True,  # 🔥 Token cũ sẽ bị vô hiệu hóa
 }
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dmjxgbywe',
+    'API_KEY': '734185299915842',
+    'API_SECRET': 'Dz5UmoBy7TbumvmIyJogMw87BDo',
+}
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
+    api_key=CLOUDINARY_STORAGE["API_KEY"],
+    api_secret=CLOUDINARY_STORAGE["API_SECRET"],
+)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -26,6 +26,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404, redirect
 from .models import Warehouse
+from django.db import transaction
+import cloudinary.uploader
 # from .models import Don_hang
 # Create your views here.
 
@@ -103,6 +105,15 @@ def logout_view(request):
     logout(request)
     messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  
+def process_order(id_product, quantity):
+    with transaction.atomic():  # Đảm bảo tính toàn vẹn dữ liệu
+        warehouse = Warehouse.objects.select_for_update().get(id_product=id_product)
+        if warehouse.instock < quantity:
+            return False
+        else:
+            warehouse.instock -= quantity
+            warehouse.save()
+            return True
 class CheckOutAPIView(APIView):  
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]   
@@ -116,6 +127,14 @@ class CheckOutAPIView(APIView):
         # cart_items = request.data.get('cartItems', [])
         cart = request.data.get('cart', [])
         print("Dữ liệu cart nhận được:", cart)
+        for item in cart:
+            nameproduct = item.get('nameproduct')
+            warehouse = Warehouse.objects.filter(nameproduct = nameproduct).first()
+            id_product = warehouse.id_product
+            quantity = item.get('quantity', 1)
+            if not process_order(id_product,quantity):
+                return Response({"message": "Không đủ hàng trong kho, hàng trong kho còn {} sản phẩm".format(warehouse.instock)}, status=status.HTTP_400_BAD_REQUEST)
+            print("Đơn hàng thành công!")
         for item in cart:
             nameproduct = item.get('nameproduct')
             id_product = Warehouse.objects.filter(nameproduct = nameproduct).first()
@@ -152,3 +171,33 @@ def Warehouse_view(request):
         'is_staff': request.user.is_staff,
     }
     return render(request, 'app/warehouse.html', context)
+@csrf_exempt
+def upload_image(request):
+    if request.method == "POST":
+        id_product = request.POST.get("id_product")
+        nameproduct = request.POST.get("nameproduct")
+        origin = request.POST.get("origin")
+        price = request.POST.get("price")
+        instock = request.POST.get("instock")
+        image_file = request.FILES.get("image")
+
+        if image_file:
+            result = cloudinary.uploader.upload(image_file)
+            image_url = result["secure_url"]
+        else:
+            image_url = None  # Không có ảnh
+
+        Warehouse.objects.update_or_create(
+            id_product=id_product,
+            defaults={
+                "nameproduct": nameproduct,
+                "origin": origin,
+                "price": price,
+                "instock": instock,
+                "image": image_url
+            }
+        )
+
+        return JsonResponse({"message": "Sản phẩm đã được lưu!","image_url": image_url})
+
+    return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)

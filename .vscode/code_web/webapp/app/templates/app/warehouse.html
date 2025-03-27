@@ -1,31 +1,70 @@
-{% comment %} {% extends 'app/base.html' %}
-{% extends 'app/home.html' %} {% endcomment %}
-{% block content %}
-    <h1>Quản lý đơn hàng</h1>
-    {% if is_staff %}
-        <a href="{% url 'warehouse_page' %}"> Vào kho hàng</a>
-    {% endif %}
-    <table border="1">
-        <tr>
-            <th>Tên sản phẩm</th>
-            <th>Giá</th>
-            <th>Hình ảnh</th>
-            {% if is_superuser %}
-                <th>Hành động</th>
-            {% endif %}
-        </tr>
-        {% for order in orders %}
-        <tr>
-            <td>{{ order.product_name }}</td>
-            <td>{{ order.price }}</td>
-            <td><img src="{{ order.image.url }}" width="50"></td>
-            {% if is_superuser %}
-                <td>
-                    <a href="{% url 'edit_order' order.id %}">✏ Chỉnh sửa</a>
-                </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
+<form id="upload-form" enctype="multipart/form-data">
+    {% csrf_token %}
     
-    </table>
-{% endblock %}
+    <label>Mã sản phẩm:</label>
+    <input type="text" id="id_product" name="id_product" required><br>
+
+    <label>Tên sản phẩm:</label>
+    <input type="text" id="nameproduct" name="nameproduct" required><br>
+
+    <label>Xuất xứ:</label>
+    <input type="text" id="origin" name="origin" required><br>
+
+    <label>Giá:</label>
+    <input type="number" id="price" name="price" required><br>
+
+    <label>Số lượng trong kho:</label>
+    <input type="number" id="instock" name="instock" required><br>
+
+    <label>Chọn ảnh:</label>
+    <input type="file" id="file-input" name="image" accept="image/*" ><br>
+
+    <img id="preview-image" src="" alt="Ảnh sản phẩm" style="max-width: 200px; display: none;"><br>
+
+    <button type="submit">Thêm sản phẩm</button>
+</form>
+
+<script>
+document.getElementById("file-input").addEventListener("change", function(event) {
+    let file = event.target.files[0];
+    let preview = document.getElementById("preview-image");
+
+    if (file) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = "none";
+    }
+});
+
+document.getElementById("upload-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    let formData = new FormData(this);
+    let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    
+    let response = await fetch("/upload/", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": csrfToken
+        }
+    });
+
+    let data = await response.json();
+    if (response.ok) {
+        alert("Sản phẩm đã được thêm thành công!");
+        
+        if (data.image_url) {  // Chỉ hiển thị ảnh nếu có
+            document.getElementById("preview-image").src = data.image_url;
+            document.getElementById("preview-image").style.display = "block";
+        }
+    } else {
+        alert("Lỗi: " + (data.error || "Có lỗi xảy ra."));
+    }
+});
+</script>
