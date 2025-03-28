@@ -20,4 +20,6 @@ urlpatterns = [
     path('search/', views.search, name='search_page'),
     path('warehouse/', views.Warehouse_view, name='warehouse_page'),
     path("upload/", views.upload_image, name="upload"),
+    path("warehouse/warehouse_list/", views.get_warehouse, name="warehouse_list"),
+
 ]

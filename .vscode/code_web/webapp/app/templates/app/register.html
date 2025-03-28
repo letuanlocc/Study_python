@@ -69,7 +69,7 @@
                 <p style="color: red;">{{ message }}</p>
             {% endfor %}
         {% endif %}
-        <form method="POST">
+        <form method="POST" autocomplete="off">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Đăng Ký</button>

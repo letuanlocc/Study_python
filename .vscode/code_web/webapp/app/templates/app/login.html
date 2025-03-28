@@ -79,7 +79,7 @@
                 {% endfor %}
             </ul>
         {% endif %}
-        <form method="post">
+        <form method="post" autocomplete="off">
             {% csrf_token %}
             <div>
                 <label for="id_user_name">Tên đăng nhập:</label>

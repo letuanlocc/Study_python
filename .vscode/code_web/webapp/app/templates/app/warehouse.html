@@ -1,70 +1,185 @@
-<form id="upload-form" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-    <label>Mã sản phẩm:</label>
-    <input type="text" id="id_product" name="id_product" required><br>
-
-    <label>Tên sản phẩm:</label>
-    <input type="text" id="nameproduct" name="nameproduct" required><br>
-
-    <label>Xuất xứ:</label>
-    <input type="text" id="origin" name="origin" required><br>
-
-    <label>Giá:</label>
-    <input type="number" id="price" name="price" required><br>
-
-    <label>Số lượng trong kho:</label>
-    <input type="number" id="instock" name="instock" required><br>
-
-    <label>Chọn ảnh:</label>
-    <input type="file" id="file-input" name="image" accept="image/*" ><br>
-
-    <img id="preview-image" src="" alt="Ảnh sản phẩm" style="max-width: 200px; display: none;"><br>
-
-    <button type="submit">Thêm sản phẩm</button>
-</form>
-
-<script>
-document.getElementById("file-input").addEventListener("change", function(event) {
-    let file = event.target.files[0];
-    let preview = document.getElementById("preview-image");
-
-    if (file) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-    } else {
-        preview.style.display = "none";
-    }
-});
-
-document.getElementById("upload-form").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    let formData = new FormData(this);
-    let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    
-    let response = await fetch("/upload/", {
-        method: "POST",
-        body: formData,
-        headers: {
-            "X-CSRFToken": csrfToken
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Sản Phẩm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
         }
-    });
-
-    let data = await response.json();
-    if (response.ok) {
-        alert("Sản phẩm đã được thêm thành công!");
-        
-        if (data.image_url) {  // Chỉ hiển thị ảnh nếu có
-            document.getElementById("preview-image").src = data.image_url;
-            document.getElementById("preview-image").style.display = "block";
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
         }
-    } else {
-        alert("Lỗi: " + (data.error || "Có lỗi xảy ra."));
-    }
-});
-</script>
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #preview-image {
+            max-width: 100%;
+            margin-top: 10px;
+            display: none;
+            border-radius: 5px;
+        }
+        #inventory-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            text-align: center;
+        }
+        #inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #inventory-table th, #inventory-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        #inventory-table th {
+            background-color: #007bff;
+            color: white;
+        }
+        #inventory-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .back_btn {
+            display: inline-block;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color:rgb(40, 167, 82);
+            color: white;
+            font-size: 16px;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .back_btn:hover {
+            background-color:rgb(40, 167, 99);
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #28a745; /* Màu xanh giống Bootstrap */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }  
+        .btn:hover {
+            background-color: #28a745; /* Màu xanh đậm hơn khi di chuột vào */
+        }
+    </style>
+</head>
+<body>
+    <a onclick="window.history.back()" class="back_btn">Quay lại</a>
+    <div class="form-container">
+        <form id="upload-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Mã sản phẩm:</label>
+            <input type="text" id="id_product" name="id_product" required>
+
+            <label>Tên sản phẩm:</label>
+            <input type="text" id="nameproduct" name="nameproduct" required>
+
+            <label>Xuất xứ:</label>
+            <input type="text" id="origin" name="origin" required>
+
+            <label>Giá:</label>
+            <input type="number" id="price" name="price" required>
+
+            <label>Số lượng trong kho:</label>
+            <input type="number" id="instock" name="instock" required>
+
+            <label>Chọn ảnh:</label>
+            <input type="file" id="file-input" name="image" accept="image/*">
+            <img id="preview-image" src="" alt="Ảnh sản phẩm">
+            <button type="submit">Thêm sản phẩm</button>
+        </form>
+            <a  href="{% url 'warehouse_list' %}" class="btn">Xem kho hàng</a>
+    </div>
+    <script>
+        document.getElementById("file-input").addEventListener("change", function(event) {
+            let file = event.target.files[0];
+            let preview = document.getElementById("preview-image");
+
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = "none";
+            }
+        });
+
+        document.getElementById("upload-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            let formData = new FormData(this);
+            let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+            
+            let response = await fetch("/upload/", {
+                method: "POST",
+                body: formData,
+                headers: {"X-CSRFToken": csrfToken}
+            });
+
+            let data = await response.json();
+            if (response.ok) {
+                alert("Sản phẩm đã được thêm thành công!");
+            } else {
+                alert("Lỗi: " + (data.error || "Có lỗi xảy ra."));
+            }
+        });
+    </script>
+</body>
+</html>

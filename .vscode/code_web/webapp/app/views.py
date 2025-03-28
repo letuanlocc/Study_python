@@ -201,3 +201,10 @@ def upload_image(request):
         return JsonResponse({"message": "Sản phẩm đã được lưu!","image_url": image_url})
 
     return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
+@login_required
+def get_warehouse(request):
+    if not is_admin_or_staff(request.user):
+        messages.error(request,"Má không có đủ quyền để mà vô đây !")
+        return redirect("home_page")
+    warehouse = Warehouse.objects.values("id_product", "nameproduct", "origin", "price", "instock", "image")
+    return render(request,'app/warehouse_list.html',{'warehouse' : warehouse})
