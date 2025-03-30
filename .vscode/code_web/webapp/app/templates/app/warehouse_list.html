@@ -1,31 +1,51 @@
-
+<!DOCTYPE html>
 <html>
-    <button onclick="window.history.back()" style="
-background-color: #007bff; 
-color: white; 
-font-size: 18px; 
-padding: 10px 20px; 
-border: none; 
-border-radius: 5px; 
-cursor: pointer;">Quay lại</button>
-<br>
+<head>
+    <title>Kho hàng</title>
     <style>
         #inventory-table {
             width: 100%;
             border-collapse: collapse; /* Gộp viền để không bị chồng lên nhau */
         }
-        
+
         #inventory-table th, #inventory-table td {
             border: 1px solid black; /* Đường kẻ đen giữa các cột */
             padding: 8px;
             text-align: center;
         }
-        
+
         #inventory-table th {
             background-color: #f2f2f2; /* Màu nền tiêu đề */
         }
+
+        /* Style for delete button */
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .delete-btn:hover {
+            background-color: darkred;
+        }
     </style>
+</head>
 <body>
+    <!-- Back button -->
+    <button onclick="window.history.back()" style="
+        background-color: #007bff; 
+        color: white; 
+        font-size: 18px; 
+        padding: 10px 20px; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer;">Quay lại
+    </button>
+    <br>
+
     <div id="inventory-container">
         <h2>Kho hàng</h2>
         <table id="inventory-table">
@@ -36,11 +56,11 @@ cursor: pointer;">Quay lại</button>
                     <th>Xuất xứ</th>
                     <th>Giá</th>
                     <th>Số lượng</th>
-                    <th>Hình ảnh</th>
+                    <th>Hình ảnh</th> 
                 </tr>
             </thead>
             <tbody>
-                {%for item in warehouse%}
+                {% for item in warehouse %}
                 <tr>
                     <td>{{ item.id_product }}</td>
                     <td>{{ item.nameproduct }}</td>
@@ -48,16 +68,26 @@ cursor: pointer;">Quay lại</button>
                     <td>{{ item.price }}</td>
                     <td>{{ item.instock }}</td>
                     <td>
-                    {%if item.image%}
-                        <img src="{{item.image}}" width="80" height="80" style="object-fit: cover; border-radius: 5px;">
-                    {%else%}
-                        <span>Not Found</span>
-                    {%endif%}
-                    </td>
-                </tr>
-                {%endfor%}
+                        {% if item.image %}
+                            <img src="{{ item.image }}" width="80" height="80" style="object-fit: cover; border-radius: 5px;">
+                        {% else %}
+                            <span>Not Found</span>
+                        {% endif %}
+                {% endfor %}
             </tbody>
         </table>
+        {% if messages %}
+        {% for message in messages %}
+            <p class="alert">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+    
+    <form action="{% url 'delete_field' %}" method="POST">
+        {% csrf_token %}
+        <input type="text" name="id_product" placeholder="Nhập ID sản phẩm cần xóa">
+        <button type="submit">Xóa</button>
+    </form>
+    
     </div>
-</body >
+</body>
 </html>

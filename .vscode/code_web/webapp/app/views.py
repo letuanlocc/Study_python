@@ -28,6 +28,7 @@ from django.shortcuts import get_object_or_404, redirect
 from .models import Warehouse
 from django.db import transaction
 import cloudinary.uploader
+from django.views import View
 # from .models import Don_hang
 # Create your views here.
 
@@ -208,3 +209,14 @@ def get_warehouse(request):
         return redirect("home_page")
     warehouse = Warehouse.objects.values("id_product", "nameproduct", "origin", "price", "instock", "image")
     return render(request,'app/warehouse_list.html',{'warehouse' : warehouse})
+    
+def delete_field(request):
+    print(request.POST)  # Xem thử có nhận được id_product không
+    id_product = request.POST.get("id_product")
+    warehouse= Warehouse.objects.filter(id_product=id_product)
+    if warehouse.exists():
+        warehouse.delete()
+        messages.success(request,"DELETE SUCCESFULL")
+    else:
+        messages.error(request,"DELETE FAILURE")
+    return redirect("warehouse_list")
