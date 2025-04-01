@@ -29,6 +29,7 @@ from .models import Warehouse
 from django.db import transaction
 import cloudinary.uploader
 from django.views import View
+from .serializers import CheckOutSerializer
 # from .models import Don_hang
 # Create your views here.
 
@@ -132,29 +133,26 @@ class CheckOutAPIView(APIView):
             nameproduct = item.get('nameproduct')
             warehouse = Warehouse.objects.filter(nameproduct = nameproduct).first()
             id_product = warehouse.id_product
+            price = item.get('price')
             quantity = item.get('quantity', 1)
             if not process_order(id_product,quantity):
                 return Response({"message": "Không đủ hàng trong kho, hàng trong kho còn {} sản phẩm".format(warehouse.instock)}, status=status.HTTP_400_BAD_REQUEST)
             print("Đơn hàng thành công!")
-        for item in cart:
-            nameproduct = item.get('nameproduct')
-            id_product = Warehouse.objects.filter(nameproduct = nameproduct).first()
-            price = item.get('price', 0)
-            user_id = int(request.session.get('_auth_user_id'))
-            user_instance = User.objects.get(id=user_id)
-            quantity = item.get('quantity', 1)
-            checkout = Checkout.objects.create(
-                id_product = id_product,
-                nameproduct= nameproduct, 
-                price= price, 
-                id_username=user_instance,
-                username=user_instance.username,
-                quantity = quantity 
-            )
-            print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}")
-            checkout.save()
-        print("da luu vao databse")
-        return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
+            data = {
+            'id_product': id_product,
+            'nameproduct': nameproduct,
+            'price': price,
+            'quantity': quantity,
+            'id_username': request.user.id  # Sử dụng thông tin người dùng đã đăng nhập
+            }
+            serializer = CheckOutSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}")
+                print("da luu vao databse")
+                return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"message": "Thanh toán thất bại!"}, status=status.HTTP_400_BAD_REQUEST)
 def is_staff(user):
     return user.is_staff
 def is_admin_or_staff(user):
@@ -186,7 +184,7 @@ def upload_image(request):
             result = cloudinary.uploader.upload(image_file)
             image_url = result["secure_url"]
         else:
-            image_url = None  # Không có ảnh
+            image_url = None 
 
         Warehouse.objects.update_or_create(
             id_product=id_product,
@@ -201,6 +199,7 @@ def upload_image(request):
 
         return JsonResponse({"message": "Sản phẩm đã được lưu!","image_url": image_url})
 
+    return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
     return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
 @login_required
 def get_warehouse(request):
