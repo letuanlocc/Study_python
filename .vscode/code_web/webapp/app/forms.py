@@ -12,7 +12,7 @@ class RegisterForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User  # Dùng Django User thay vì Register
+        model = User  
         fields = ['username', 'password']
         widgets = {
             'password': forms.PasswordInput(),

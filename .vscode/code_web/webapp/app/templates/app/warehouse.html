@@ -124,19 +124,19 @@
         <form id="upload-form" enctype="multipart/form-data">
             {% csrf_token %}
             <label>Mã sản phẩm:</label>
-            <input type="text" id="id_product" name="id_product" required>
+            <input type="text" id="id_product" name="id_product">
 
             <label>Tên sản phẩm:</label>
-            <input type="text" id="nameproduct" name="nameproduct" required>
+            <input type="text" id="nameproduct" name="nameproduct" >
 
             <label>Xuất xứ:</label>
-            <input type="text" id="origin" name="origin" required>
+            <input type="text" id="origin" name="origin">
 
             <label>Giá:</label>
-            <input type="number" id="price" name="price" required>
+            <input type="number" id="price" name="price" >
 
             <label>Số lượng trong kho:</label>
-            <input type="number" id="instock" name="instock" required>
+            <input type="number" id="instock" name="instock">
 
             <label>Chọn ảnh:</label>
             <input type="file" id="file-input" name="image" accept="image/*">

@@ -30,6 +30,7 @@ from django.db import transaction
 import cloudinary.uploader
 from django.views import View
 from .serializers import CheckOutSerializer
+from .serializers import CartItemSerializer
 # from .models import Don_hang
 # Create your views here.
 
@@ -179,27 +180,20 @@ def upload_image(request):
         price = request.POST.get("price")
         instock = request.POST.get("instock")
         image_file = request.FILES.get("image")
-
+        warehouse = Warehouse.objects.filter(id_product=id_product).first()
         if image_file:
             result = cloudinary.uploader.upload(image_file)
             image_url = result["secure_url"]
         else:
             image_url = None 
-
-        Warehouse.objects.update_or_create(
-            id_product=id_product,
-            defaults={
-                "nameproduct": nameproduct,
-                "origin": origin,
-                "price": price,
-                "instock": instock,
-                "image": image_url
-            }
-        )
-
-        return JsonResponse({"message": "Sản phẩm đã được lưu!","image_url": image_url})
-
-    return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
+        if id_product: warehouse.id_product = id_product
+        if nameproduct: warehouse.nameproduct = nameproduct
+        if origin: warehouse.origin = origin
+        if price: warehouse.price = price
+        if instock: warehouse.instock = instock
+        if image_url: warehouse.image = image_url  # Giữ nguyên nếu không upload ảnh mới
+        warehouse.save()
+        return JsonResponse({"message": "Cập nhật thành công!", "image_url": warehouse.image})
     return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
 @login_required
 def get_warehouse(request):
