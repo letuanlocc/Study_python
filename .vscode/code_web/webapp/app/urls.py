@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from .views import CheckOutAPIView
+from .views import WarehouseListAPI
 from . import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -20,6 +21,7 @@ urlpatterns = [
     path('search/', views.search, name='search_page'),
     path('warehouse/', views.Warehouse_view, name='warehouse_page'),
     path("upload/", views.upload_image, name="upload"),
-    path("warehouse/warehouse_list/", views.get_warehouse, name="warehouse_list"), 
+    path('api/warehouse/',  WarehouseListAPI.as_view(), name='warehouse_api'),
+    path('warehouse/warehouse_list/', views.warehosue_list, name='warehouse_list'),
     path("warehouse/warehouse_list/delete", views.delete_field, name="delete_field"), 
 ]

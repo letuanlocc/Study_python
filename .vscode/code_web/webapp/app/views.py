@@ -31,6 +31,9 @@ import cloudinary.uploader
 from django.views import View
 from .serializers import CheckOutSerializer
 from .serializers import CartItemSerializer
+from rest_framework.generics import ListAPIView
+from .serializers import WarehouseSerializer
+from rest_framework.permissions import IsAdminUser
 # from .models import Don_hang
 # Create your views here.
 
@@ -109,7 +112,7 @@ def logout_view(request):
     messages.success(request, "Bạn đã đăng xuất thành công!")
     return redirect("home_page")  
 def process_order(id_product, quantity):
-    with transaction.atomic():  # Đảm bảo tính toàn vẹn dữ liệu
+    with transaction.atomic():  
         warehouse = Warehouse.objects.select_for_update().get(id_product=id_product)
         if warehouse.instock < quantity:
             return False
@@ -144,16 +147,20 @@ class CheckOutAPIView(APIView):
             'nameproduct': nameproduct,
             'price': price,
             'quantity': quantity,
-            'id_username': request.user.id  # Sử dụng thông tin người dùng đã đăng nhập
+            'id_username': request.user.id  
             }
+            order_success = []
             serializer = CheckOutSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}")
                 print("da luu vao databse")
-                return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
+                order_success.append(nameproduct)
             else:
                 return Response({"message": "Thanh toán thất bại!"}, status=status.HTTP_400_BAD_REQUEST)
+        if order_success:
+            return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Không có sản phẩm nào được thanh toán!"}, status=status.HTTP_400_BAD_REQUEST)
 def is_staff(user):
     return user.is_staff
 def is_admin_or_staff(user):
@@ -181,6 +188,16 @@ def upload_image(request):
         instock = request.POST.get("instock")
         image_file = request.FILES.get("image")
         warehouse = Warehouse.objects.filter(id_product=id_product).first()
+        if not warehouse:  # Nếu không tìm thấy sản phẩm
+            warehouse = Warehouse(id_product=id_product, 
+                                   nameproduct=nameproduct, 
+                                   origin=origin, 
+                                   price=price, 
+                                   instock=instock)
+            if image_file:
+                result = cloudinary.uploader.upload(image_file)
+                warehouse.image = result["secure_url"]
+            warehouse.save()
         if image_file:
             result = cloudinary.uploader.upload(image_file)
             image_url = result["secure_url"]
@@ -195,16 +212,14 @@ def upload_image(request):
         warehouse.save()
         return JsonResponse({"message": "Cập nhật thành công!", "image_url": warehouse.image})
     return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
-@login_required
-def get_warehouse(request):
-    if not is_admin_or_staff(request.user):
-        messages.error(request,"Má không có đủ quyền để mà vô đây !")
-        return redirect("home_page")
-    warehouse = Warehouse.objects.values("id_product", "nameproduct", "origin", "price", "instock", "image")
-    return render(request,'app/warehouse_list.html',{'warehouse' : warehouse})
-    
+class WarehouseListAPI(ListAPIView):
+    queryset = Warehouse.objects.all()  # Chọn tất cả các warehouse
+    serializer_class = WarehouseSerializer
+    permission_classes = [IsAdminUser]
+def warehosue_list(request):
+    return render(request, 'app/warehouse_list.html') 
 def delete_field(request):
-    print(request.POST)  # Xem thử có nhận được id_product không
+    print(request.POST) 
     id_product = request.POST.get("id_product")
     warehouse= Warehouse.objects.filter(id_product=id_product)
     if warehouse.exists():

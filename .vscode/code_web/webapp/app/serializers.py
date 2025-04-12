@@ -19,3 +19,13 @@ class CartItemSerializer(serializers.ModelSerializer):
         if image is None:  # Nếu không có ảnh mới, giữ ảnh cũ
             validated_data['image'] = instance.image
         return super().update(instance, validated_data)
+class WarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = ['id_product', 'nameproduct', 'origin', 'price', 'instock', 'image']
+        
+    def update(self, instance, validated_data):
+        image = validated_data.get('image', None) 
+        if image is None:  # Nếu không có ảnh mới, giữ ảnh cũ
+            validated_data['image'] = instance.image
+        return super().update(instance, validated_data)
