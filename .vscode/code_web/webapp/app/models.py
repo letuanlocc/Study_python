@@ -23,8 +23,7 @@ class Checkout(models.Model):
     username = models.CharField(max_length=150)
     nameproduct = models.CharField(max_length=50)
     price = models.IntegerField()
-    quantity = models.IntegerField(null=True, blank=True)  
-    date_time = models.DateField(auto_now_add=True)  
+    quantity = models.IntegerField(null=True, blank=    True)  
+    date_time = models.DateField(auto_now_add=True) 
     class Meta:
         db_table = 'Checkout'
-        
