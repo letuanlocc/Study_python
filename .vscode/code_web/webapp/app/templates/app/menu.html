@@ -137,7 +137,7 @@
                         <img src="{{ item.image }}" alt="{{ item.nameproduct }}">
                         <h3>{{ item.nameproduct }}</h3>
                         <p>{{ item.price }} VND </p>
-                        <button class="add-to-cart-btn" onclick="addToCart('{{ item.nameproduct }}',{{ item.price }}, this)">Thêm vào giỏ hàng</button>
+                        <button class="add-to-cart-btn" onclick="addToCart('{{ item.nameproduct|escapejs }}', Number('{{ item.price }}'), this)">Thêm vào giỏ hàng</button>
                     </div>
             {% endfor %}
         {%endif%}
