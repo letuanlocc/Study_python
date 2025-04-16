@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kho hàng</title>
+    <!-- Giả sử bạn dùng Bootstrap để nút đẹp hơn -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,73 +19,40 @@
         }
 
         #inventory-table th, #inventory-table td {
-            border: 1px solid black;
+            border: 1px solid #dee2e6; /* Màu border của Bootstrap */
             padding: 10px;
             text-align: center;
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
         }
 
         #inventory-table th {
-            background-color: #f2f2f2;
+            background-color: #f8f9fa; /* Màu nền header của Bootstrap */
         }
 
         img {
-            width: 80px;
-            height: 80px;
+            max-width: 80px; /* Dùng max-width thay vì width */
+            max-height: 80px; /* Dùng max-height thay vì height */
+            height: auto; /* Giữ tỷ lệ */
             object-fit: cover;
             border-radius: 5px;
         }
 
         .back-btn {
-            background-color: #007bff;
-            color: white;
-            font-size: 18px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
             margin-bottom: 20px;
         }
 
-        .back-btn:hover {
-            background-color: #0056b3;
-        }
+        /* Bỏ CSS cho form xóa cũ */
 
-        .delete-form {
-            margin-top: 20px;
-        }
-
-        .delete-form input {
-            padding: 8px;
-            width: 250px;
-            margin-right: 10px;
-        }
-
-        .delete-form button {
-            background-color: red;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .delete-form button:hover {
-            background-color: darkred;
-        }
     </style>
 </head>
 <body>
-    <button onclick="window.history.back()" class="back-btn">Quay lại</button>
-    {% if messages %}
-    <script>
-        {% for message in messages %}
-            alert("{{ message }}");
-        {% endfor %}
-    </script>
-{% endif %}
+    <button onclick="window.history.back()" class="btn btn-secondary back-btn">Quay lại</button>
+
+    <!-- Không cần hiển thị message từ Django ở đây nữa vì API sẽ xử lý -->
+
     <div id="inventory-container">
         <h2>Kho hàng</h2>
-        <table id="inventory-table">
+        <table id="inventory-table" class="table table-bordered table-striped"> <!-- Thêm class Bootstrap -->
             <thead>
                 <tr>
                     <th>Mã SP</th>
@@ -92,49 +61,152 @@
                     <th>Giá</th>
                     <th>Số lượng</th>
                     <th>Hình ảnh</th>
+                    <th>Hành động</th> <!-- Thêm cột Hành động -->
                 </tr>
             </thead>
             <tbody id="warehouse-list">
                 <!-- Dữ liệu sẽ được chèn vào đây từ API -->
+                <tr>
+                    <td colspan="7" class="text-center">Đang tải dữ liệu...</td>
+                </tr>
             </tbody>
         </table>
 
-        <form action="{% url 'delete_field' %}" method="POST" class="delete-form">
-            {% csrf_token %}
-            <input type="text" name="id_product" placeholder="Nhập ID cần xóa" required>
-            <button type="submit">Xóa</button>
-        </form>
     </div>
 
+    {% csrf_token %}
+
     <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken'); // Lấy CSRF token
+
+        const tableBody = document.getElementById('warehouse-list');
+
+        // --- Fetch dữ liệu để hiển thị bảng ---
         fetch('/api/warehouse/', {
-            credentials: 'include'
+            credentials: 'include' // Quan trọng nếu API yêu cầu xác thực (ví dụ: session)
         })
         .then(response => {
-            if (!response.ok) throw new Error('Lỗi khi lấy dữ liệu từ API');
-            return response.json();
+            if (!response.ok) {
+                throw new Error(`Lỗi HTTP ${response.status} khi lấy dữ liệu từ API`);
+            }
+            // Kiểm tra content type trước khi parse JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                throw new Error("Dữ liệu trả về không phải là JSON");
+            }
         })
         .then(data => {
-            const tableBody = document.getElementById('warehouse-list');
+            tableBody.innerHTML = ''; // Xóa thông báo "Đang tải..." hoặc lỗi cũ
+            if (data.length === 0) {
+                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không có sản phẩm nào trong kho.</td></tr>`;
+                 return;
+            }
+
             data.forEach(item => {
-                const imageUrl = item.image || 'https://via.placeholder.com/80';
+                const imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image'; // Ảnh mặc định nếu không có
                 const row = document.createElement('tr');
+                row.id = `warehouse-row-${item.id_product}`; // Thêm ID cho thẻ tr để dễ xóa
+
+                // Tạo URL API xóa cho sản phẩm này
+                const deleteUrl = `/api/warehouse/${item.id_product}/`;
+
                 row.innerHTML = `
                     <td>${item.id_product}</td>
-                    <td>${item.nameproduct}</td>
-                    <td>${item.origin}</td>
-                    <td>${item.price.toLocaleString()}₫</td>
-                    <td>${item.instock}</td>
-                    <td><img src="${imageUrl}" alt="Ảnh sản phẩm"></td>
+                    <td>${item.nameproduct || 'N/A'}</td>
+                    <td>${item.origin || 'N/A'}</td>
+                    <td>${item.price ? item.price.toLocaleString() + '₫' : 'N/A'}</td>
+                    <td>${item.instock !== null ? item.instock : 'N/A'}</td>
+                    <td><img src="${imageUrl}" alt="Ảnh ${item.nameproduct || 'sản phẩm'}"></td>
+                    <td>
+                        <button
+                            class="btn btn-danger btn-sm delete-warehouse-btn"
+                            data-id="${item.id_product}"
+                            data-url="${deleteUrl}"
+                        >
+                            Xóa
+                        </button>
+                        <!-- Có thể thêm nút Sửa ở đây sau -->
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
         })
         .catch(error => {
             console.error('Lỗi khi fetch dữ liệu:', error);
-            const tableBody = document.getElementById('warehouse-list');
-            tableBody.innerHTML = `<tr><td colspan="6" style="color: red;">Không thể tải dữ liệu từ server.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Không thể tải dữ liệu từ server: ${error.message}</td></tr>`;
+        });
+
+        // --- Thêm Event Listener cho các nút xóa (sử dụng event delegation) ---
+        tableBody.addEventListener('click', function(event) {
+            // Chỉ xử lý khi nhấn nút có class 'delete-warehouse-btn'
+            if (event.target.classList.contains('delete-warehouse-btn')) {
+                const button = event.target;
+                const productId = button.getAttribute('data-id');
+                const url = button.getAttribute('data-url'); // Lấy URL từ data attribute
+
+                if (!productId || !url) {
+                    console.error("Không tìm thấy ID sản phẩm hoặc URL trên nút xóa.");
+                    return;
+                }
+
+                if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm có ID: ${productId}?`)) {
+                    fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': csrftoken, // Gửi kèm CSRF token
+                            'Content-Type': 'application/json'
+                            // Không cần body cho request DELETE này
+                        },
+                    })
+                    .then(response => {
+                        if (response.status === 204) { // 204 No Content là thành công cho DELETE
+                            // Xóa hàng khỏi bảng HTML
+                            const row = document.getElementById(`warehouse-row-${productId}`);
+                            if (row) {
+                                row.remove();
+                                alert('Xóa sản phẩm thành công!'); // Thông báo thành công (tùy chọn)
+                            }
+                        } else if (response.status === 404) {
+                             alert('Lỗi: Không tìm thấy sản phẩm để xóa (404).');
+                        } else if (response.status === 403) {
+                             alert('Lỗi: Bạn không có quyền thực hiện hành động này (403).');
+                        } else {
+                            // Xử lý lỗi khác
+                            response.text().then(text => { // Cố gắng đọc nội dung lỗi nếu có
+                                console.error('Delete failed:', response.status, text);
+                                alert(`Đã xảy ra lỗi khi xóa sản phẩm. Status: ${response.status}. Chi tiết: ${text}`);
+                            }).catch(() => {
+                                console.error('Delete failed:', response.status);
+                                alert(`Đã xảy ra lỗi khi xóa sản phẩm. Status: ${response.status}.`);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Lỗi mạng hoặc JavaScript khi xóa:', error);
+                        alert('Đã xảy ra lỗi mạng hoặc lỗi JavaScript khi thực hiện xóa.');
+                    });
+                }
+            }
         });
     </script>
+    <!-- Optional: Bootstrap JS Bundle (nếu cần cho các component khác) -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
 </body>
 </html>

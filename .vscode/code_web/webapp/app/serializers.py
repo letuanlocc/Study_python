@@ -29,3 +29,8 @@ class WarehouseSerializer(serializers.ModelSerializer):
         if image is None:  # Nếu không có ảnh mới, giữ ảnh cũ
             validated_data['image'] = instance.image
         return super().update(instance, validated_data)
+class DestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = ['id_product']
+    

@@ -32,8 +32,10 @@ from django.views import View
 from .serializers import CheckOutSerializer
 from .serializers import CartItemSerializer
 from rest_framework.generics import ListAPIView
+from .serializers import DestroySerializer
 from .serializers import WarehouseSerializer
 from rest_framework.permissions import IsAdminUser
+from rest_framework.generics import DestroyAPIView 
 # from .models import Don_hang
 # Create your views here.
 
@@ -62,7 +64,7 @@ def search(request):
             return redirect("home_page")
     return render(request, "app/search.html")
 def menu_view(request):
-        warehouse = Warehouse.objects.all()
+        warehouse = Warehouse.objects.all().order_by('nameproduct')
         username = request.user.username if request.user.is_authenticated else "Guest"
         context = {
             "username" : username,
@@ -208,23 +210,20 @@ def upload_image(request):
         if origin: warehouse.origin = origin
         if price: warehouse.price = price
         if instock: warehouse.instock = instock
-        if image_url: warehouse.image = image_url  # Giữ nguyên nếu không upload ảnh mới
+        if image_url: warehouse.image = image_url  
         warehouse.save()
         return JsonResponse({"message": "Cập nhật thành công!", "image_url": warehouse.image})
     return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
 class WarehouseListAPI(ListAPIView):
-    queryset = Warehouse.objects.all()  # Chọn tất cả các warehouse
+    queryset = Warehouse.objects.all()  
     serializer_class = WarehouseSerializer
     permission_classes = [IsAdminUser]
 def warehosue_list(request):
     return render(request, 'app/warehouse_list.html') 
-def delete_field(request):
-    print(request.POST) 
-    id_product = request.POST.get("id_product")
-    warehouse= Warehouse.objects.filter(id_product=id_product)
-    if warehouse.exists():
-        warehouse.delete()
-        messages.success(request,"DELETE SUCCESFULL")
-    else:
-        messages.error(request,"DELETE FAILURE")
-    return redirect("warehouse_list")
+class WarehouseDestroyAPIView(DestroyAPIView):
+    queryset = Warehouse.objects.all() #tìm các object có trong warehouse
+    serializer_class = DestroySerializer
+    lookup_field = 'id_product'        #tìm object cần xóa
+    lookup_url_kwarg = 'id_product' 
+    permission_classes = [IsAdminUser]
+    

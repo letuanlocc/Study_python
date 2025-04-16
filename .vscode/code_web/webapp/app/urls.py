@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from .views import CheckOutAPIView
 from .views import WarehouseListAPI
+from .views import WarehouseDestroyAPIView
 from . import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -23,5 +24,5 @@ urlpatterns = [
     path("upload/", views.upload_image, name="upload"),
     path('api/warehouse/',  WarehouseListAPI.as_view(), name='warehouse_api'),
     path('warehouse/warehouse_list/', views.warehosue_list, name='warehouse_list'),
-    path("warehouse/warehouse_list/delete", views.delete_field, name="delete_field"), 
+   path('api/warehouse/<str:id_product>/', WarehouseDestroyAPIView.as_view(), name='warehouse_delete_api'),
 ]
