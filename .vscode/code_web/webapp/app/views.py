@@ -35,7 +35,8 @@ from rest_framework.generics import ListAPIView
 from .serializers import DestroySerializer
 from .serializers import WarehouseSerializer
 from rest_framework.permissions import IsAdminUser
-from rest_framework.generics import DestroyAPIView 
+from rest_framework import generics
+from .models import Checkout
 # from .models import Don_hang
 # Create your views here.
 
@@ -180,50 +181,95 @@ def Warehouse_view(request):
         'is_staff': request.user.is_staff,
     }
     return render(request, 'app/warehouse.html', context)
-@csrf_exempt
-def upload_image(request):
-    if request.method == "POST":
-        id_product = request.POST.get("id_product")
-        nameproduct = request.POST.get("nameproduct")
-        origin = request.POST.get("origin")
-        price = request.POST.get("price")
-        instock = request.POST.get("instock")
-        image_file = request.FILES.get("image")
-        warehouse = Warehouse.objects.filter(id_product=id_product).first()
-        if not warehouse:  # Nếu không tìm thấy sản phẩm
-            warehouse = Warehouse(id_product=id_product, 
-                                   nameproduct=nameproduct, 
-                                   origin=origin, 
-                                   price=price, 
-                                   instock=instock)
-            if image_file:
-                result = cloudinary.uploader.upload(image_file)
-                warehouse.image = result["secure_url"]
-            warehouse.save()
+class WarehouseListCreateAPIView(generics.ListCreateAPIView): #liệt kê và tạo mới
+    queryset = Warehouse.objects.all() 
+    queryset = Warehouse.objects.all().order_by('nameproduct') 
+    serializer_class = WarehouseSerializer
+    permission_classes = [IsAdminUser] 
+    authentication_classes = [SessionAuthentication] 
+    
+    def perform_create(self, serializer): # Tạo mới đối tượng Warehouse
+        image_file = self.request.FILES.get("image")
+        image_url = None
         if image_file:
-            result = cloudinary.uploader.upload(image_file)
-            image_url = result["secure_url"]
-        else:
-            image_url = None 
-        if id_product: warehouse.id_product = id_product
-        if nameproduct: warehouse.nameproduct = nameproduct
-        if origin: warehouse.origin = origin
-        if price: warehouse.price = price
-        if instock: warehouse.instock = instock
-        if image_url: warehouse.image = image_url  
-        warehouse.save()
-        return JsonResponse({"message": "Cập nhật thành công!", "image_url": warehouse.image})
-    return JsonResponse({"error": "Phương thức không hợp lệ!"}, status=400)
+            try:
+                print(f"Đang tải ảnh lên Cloudinary: {image_file.name}")
+                result = cloudinary.uploader.upload(
+                    image_file,
+                    folder="warehouse_images" # Lưu vào thư mục cụ thể
+                )
+                image_url = result.get("secure_url") # Lấy URL ảnh đã upload
+                print(f"Tải ảnh thành công: {image_url}")
+            except Exception as e:
+                print(f"Lỗi tải ảnh lên Cloudinary: {e}")
+                raise serializer.ValidationError({"image": f"Tải ảnh thất bại: {e}"})
+
+        serializer.save(image=image_url)
+        print(f"Đã tạo sản phẩm: {serializer.instance.id_product}")
+
+class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView): #cập nhật, xóa và lấy chi tiết
+    serializer_class = WarehouseSerializer 
+    permission_classes = [IsAdminUser] 
+    authentication_classes = [SessionAuthentication] 
+    lookup_field = 'id_product'       
+    lookup_url_kwarg = 'id_product'   
+
+    def perform_update(self, serializer):
+        instance = serializer.instance 
+        image_file = self.request.FILES.get("image")
+        image_url = instance.image # Mặc định giữ ảnh cũ
+
+        if image_file: 
+            try:
+                if instance.image:
+                    try:
+                        public_id = instance.image.split('/')[-1].split('.')[0]
+                        print(f"Đang xóa ảnh cũ trên Cloudinary: {public_id}")
+                        cloudinary.uploader.destroy(public_id) 
+                    except Exception as delete_error:
+                        print(f"Lỗi xóa ảnh cũ trên Cloudinary: {delete_error}") 
+
+                print(f"Đang tải ảnh mới lên Cloudinary: {image_file.name}")
+                result = cloudinary.uploader.upload(
+                    image_file,
+                    folder="warehouse_images" # Lưu vào thư mục cụ thể
+                )
+                image_url = result.get("secure_url") # Lấy URL ảnh mới
+                print(f"Tải ảnh mới thành công: {image_url}")
+            except Exception as e:
+                print(f"Lỗi tải ảnh mới lên Cloudinary: {e}")
+                raise serializer.ValidationError({"image": f"Tải ảnh mới thất bại: {e}"})
+        elif 'image' in self.request.data and self.request.data.get('image') is None:
+             image_url = None
+             if instance.image:
+                 try:
+                     public_id = instance.image.split('/')[-1].split('.')[0]
+                     print(f"Đang xóa ảnh (do yêu cầu null) trên Cloudinary: {public_id}")
+                     cloudinary.uploader.destroy(public_id) 
+                 except Exception as delete_error:
+                     print(f"Lỗi xóa ảnh cũ (do yêu cầu null) trên Cloudinary: {delete_error}")
+
+        serializer.save(image=image_url)
+        print(f"Đã cập nhật sản phẩm: {instance.id_product}")
+
+    # Ghi đè để xử lý xóa ảnh trên Cloudinary khi XÓA sản phẩm (DELETE)
+    def perform_destroy(self, instance):
+        # (Tùy chọn) Xóa ảnh trên Cloudinary trước khi xóa object trong DB
+        if instance.image:
+            try:
+                public_id = instance.image.split('/')[-1].split('.')[0]
+                print(f"Đang xóa ảnh (do xóa sản phẩm) trên Cloudinary: {public_id}")
+                cloudinary.uploader.destroy(public_id) # Hoặc public_id_with_folder
+            except Exception as delete_error:
+                # Log lỗi nhưng vẫn tiếp tục xóa object khỏi DB
+                print(f"Lỗi xóa ảnh Cloudinary khi xóa sản phẩm {instance.id_product}: {delete_error}")
+
+        # Gọi hàm xóa mặc định của DRF để xóa object khỏi DB
+        super().perform_destroy(instance)
+        print(f"Đã xóa sản phẩm: {instance.id_product}")
 class WarehouseListAPI(ListAPIView):
     queryset = Warehouse.objects.all()  
     serializer_class = WarehouseSerializer
     permission_classes = [IsAdminUser]
 def warehosue_list(request):
     return render(request, 'app/warehouse_list.html') 
-class WarehouseDestroyAPIView(DestroyAPIView):
-    queryset = Warehouse.objects.all() #tìm các object có trong warehouse
-    serializer_class = DestroySerializer
-    lookup_field = 'id_product'        #tìm object cần xóa
-    lookup_url_kwarg = 'id_product' 
-    permission_classes = [IsAdminUser]
-    
