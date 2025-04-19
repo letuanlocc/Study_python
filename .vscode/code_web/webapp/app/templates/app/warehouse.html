@@ -114,7 +114,7 @@
             right: 10px;
         }  
         .btn:hover {
-            background-color: #28a745; /* Màu xanh đậm hơn khi di chuột vào */
+            background-color: #218838;
         }
     </style>
 </head>
@@ -124,28 +124,29 @@
         <form id="upload-form" enctype="multipart/form-data">
             {% csrf_token %}
             <label>Mã sản phẩm:</label>
-            <input type="text" id="id_product" name="id_product">
+            <input type="text" id="id_product" name="id_product" required>
 
             <label>Tên sản phẩm:</label>
-            <input type="text" id="nameproduct" name="nameproduct" >
+            <input type="text" id="nameproduct" name="nameproduct" required>
 
             <label>Xuất xứ:</label>
-            <input type="text" id="origin" name="origin">
+            <input type="text" id="origin" name="origin" required>
 
             <label>Giá:</label>
-            <input type="number" id="price" name="price" >
+            <input type="number" id="price" name="price" required>
 
             <label>Số lượng trong kho:</label>
-            <input type="number" id="instock" name="instock">
+            <input type="number" id="instock" name="instock" required>
 
             <label>Chọn ảnh:</label>
-            <input type="file" id="file-input" name="image" accept="image/*">
+            <input type="file" id="file-input" name="image">
             <img id="preview-image" src="" alt="Ảnh sản phẩm">
             <button type="submit">Thêm sản phẩm</button>
         </form>
             <a  href="{% url 'warehouse_list' %}" class="btn">Xem kho hàng</a>
     </div>
     <script>
+        // Hiển thị ảnh xem trước
         document.getElementById("file-input").addEventListener("change", function(event) {
             let file = event.target.files[0];
             let preview = document.getElementById("preview-image");
@@ -162,24 +163,55 @@
             }
         });
 
+        // Gửi dữ liệu qua API
         document.getElementById("upload-form").addEventListener("submit", async function(event) {
             event.preventDefault();
             let formData = new FormData(this);
             let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-            
-            let response = await fetch("/upload/", {
-                method: "POST",
-                body: formData,
-                headers: {"X-CSRFToken": csrfToken}
-            });
-
-            let data = await response.json();
-            if (response.ok) {
-                alert("Sản phẩm đã được thêm thành công!");
-            } else {
-                alert("Lỗi: " + (data.error || "Có lỗi xảy ra."));
+        
+            let idProduct = document.getElementById("id_product").value;
+        
+            let url = `/api/warehouse/${idProduct}/`;  // dùng trực tiếp
+        
+            try {
+                let checkResponse = await fetch(url, { method: "GET" });
+        
+                if (checkResponse.ok) {
+                    // Nếu tồn tại → cập nhật
+                    let response = await fetch(url, {
+                        method: "PUT",
+                        body: formData,
+                        headers: { "X-CSRFToken": csrfToken }
+                    });
+        
+                    let data = await response.json();
+                    console.log("Response: ", response);
+                    console.log("Data: ", data);
+                    if (response.ok) {
+                        alert("Sản phẩm đã được cập nhật thành công!");
+                    } else {
+                        alert("Lỗi khi cập nhật: " + (data.error || JSON.stringify(data)));
+                    }
+                } else {
+                    // Nếu không tồn tại → tạo mới
+                    let createUrl = `/api/warehouse/`;  // không cần id_product trong URL
+                    let response = await fetch(createUrl, {
+                        method: "POST",
+                        body: formData,
+                        headers: { "X-CSRFToken": csrfToken }
+                    });
+        
+                    let data = await response.json();
+                    if (response.ok) {
+                        alert("Sản phẩm đã được thêm thành công!");
+                    } else {
+                        alert("Lỗi khi tạo mới: " + (data.error || JSON.stringify(data)));
+                    }
+                }
+            } catch (error) {
+                alert("Lỗi kết nối tới server: " + error.message);
             }
-        });
+        });        
     </script>
 </body>
 </html>
