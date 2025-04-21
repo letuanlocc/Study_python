@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kho hàng</title>
-    <!-- Giả sử bạn dùng Bootstrap để nút đẹp hơn -->
+    <!-- Sử dụng Bootstrap để cải thiện giao diện -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -19,20 +19,19 @@
         }
 
         #inventory-table th, #inventory-table td {
-            border: 1px solid #dee2e6; /* Màu border của Bootstrap */
+            border: 1px solid #dee2e6;
             padding: 10px;
             text-align: center;
-            vertical-align: middle; /* Căn giữa theo chiều dọc */
+            vertical-align: middle;
         }
 
         #inventory-table th {
-            background-color: #f8f9fa; /* Màu nền header của Bootstrap */
+            background-color: #f8f9fa;
         }
 
         img {
-            max-width: 80px; /* Dùng max-width thay vì width */
-            max-height: 80px; /* Dùng max-height thay vì height */
-            height: auto; /* Giữ tỷ lệ */
+            max-width: 80px;
+            max-height: 80px;
             object-fit: cover;
             border-radius: 5px;
         }
@@ -40,19 +39,14 @@
         .back-btn {
             margin-bottom: 20px;
         }
-
-        /* Bỏ CSS cho form xóa cũ */
-
     </style>
 </head>
 <body>
     <button onclick="window.history.back()" class="btn btn-secondary back-btn">Quay lại</button>
 
-    <!-- Không cần hiển thị message từ Django ở đây nữa vì API sẽ xử lý -->
-
     <div id="inventory-container">
         <h2>Kho hàng</h2>
-        <table id="inventory-table" class="table table-bordered table-striped"> <!-- Thêm class Bootstrap -->
+        <table id="inventory-table" class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>Mã SP</th>
@@ -61,20 +55,16 @@
                     <th>Giá</th>
                     <th>Số lượng</th>
                     <th>Hình ảnh</th>
-                    <th>Hành động</th> <!-- Thêm cột Hành động -->
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody id="warehouse-list">
-                <!-- Dữ liệu sẽ được chèn vào đây từ API -->
                 <tr>
                     <td colspan="7" class="text-center">Đang tải dữ liệu...</td>
                 </tr>
             </tbody>
         </table>
-
     </div>
-
-    {% csrf_token %}
 
     <script>
         function getCookie(name) {
@@ -83,7 +73,6 @@
                 const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
@@ -92,39 +81,32 @@
             }
             return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken'); // Lấy CSRF token
+        const csrftoken = getCookie('csrftoken');
 
         const tableBody = document.getElementById('warehouse-list');
 
-        // --- Fetch dữ liệu để hiển thị bảng ---
+        // Fetch dữ liệu từ API
         fetch('/api/warehouse/', {
-            credentials: 'include' // Quan trọng nếu API yêu cầu xác thực (ví dụ: session)
+            credentials: 'include'
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Lỗi HTTP ${response.status} khi lấy dữ liệu từ API`);
+                throw new Error(`Lỗi HTTP ${response.status}`);
             }
-            // Kiểm tra content type trước khi parse JSON
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                return response.json();
-            } else {
-                throw new Error("Dữ liệu trả về không phải là JSON");
-            }
+            return response.json();
         })
         .then(data => {
-            tableBody.innerHTML = ''; // Xóa thông báo "Đang tải..." hoặc lỗi cũ
+            tableBody.innerHTML = '';
             if (data.length === 0) {
-                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không có sản phẩm nào trong kho.</td></tr>`;
-                 return;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không có sản phẩm nào trong kho.</td></tr>`;
+                return;
             }
 
             data.forEach(item => {
-                const imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image'; // Ảnh mặc định nếu không có
+                const imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image';
                 const row = document.createElement('tr');
-                row.id = `warehouse-row-${item.id_product}`; // Thêm ID cho thẻ tr để dễ xóa
+                row.id = `warehouse-row-${item.id_product}`;
 
-                // Tạo URL API xóa cho sản phẩm này
                 const deleteUrl = `/api/warehouse/${item.id_product}/`;
 
                 row.innerHTML = `
@@ -142,7 +124,6 @@
                         >
                             Xóa
                         </button>
-                        <!-- Có thể thêm nút Sửa ở đây sau -->
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -153,60 +134,46 @@
             tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Không thể tải dữ liệu từ server: ${error.message}</td></tr>`;
         });
 
-        // --- Thêm Event Listener cho các nút xóa (sử dụng event delegation) ---
+        // Xử lý sự kiện xóa sản phẩm
         tableBody.addEventListener('click', function(event) {
-            // Chỉ xử lý khi nhấn nút có class 'delete-warehouse-btn'
             if (event.target.classList.contains('delete-warehouse-btn')) {
                 const button = event.target;
                 const productId = button.getAttribute('data-id');
-                const url = button.getAttribute('data-url'); // Lấy URL từ data attribute
-
-                if (!productId || !url) {
-                    console.error("Không tìm thấy ID sản phẩm hoặc URL trên nút xóa.");
-                    return;
-                }
+                const url = button.getAttribute('data-url');
 
                 if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm có ID: ${productId}?`)) {
                     fetch(url, {
                         method: 'DELETE',
                         headers: {
-                            'X-CSRFToken': csrftoken, // Gửi kèm CSRF token
+                            'X-CSRFToken': csrftoken,
                             'Content-Type': 'application/json'
-                            // Không cần body cho request DELETE này
                         },
                     })
                     .then(response => {
-                        if (response.status === 204) { // 204 No Content là thành công cho DELETE
-                            // Xóa hàng khỏi bảng HTML
+                        if (response.status === 204) {
                             const row = document.getElementById(`warehouse-row-${productId}`);
                             if (row) {
                                 row.remove();
-                                alert('Xóa sản phẩm thành công!'); // Thông báo thành công (tùy chọn)
+                                alert('Xóa sản phẩm thành công!');
                             }
                         } else if (response.status === 404) {
-                             alert('Lỗi: Không tìm thấy sản phẩm để xóa (404).');
+                            alert('Lỗi: Không tìm thấy sản phẩm để xóa.');
                         } else if (response.status === 403) {
-                             alert('Lỗi: Bạn không có quyền thực hiện hành động này (403).');
+                            alert('Lỗi: Bạn không có quyền thực hiện hành động này.');
                         } else {
-                            // Xử lý lỗi khác
-                            response.text().then(text => { // Cố gắng đọc nội dung lỗi nếu có
+                            response.text().then(text => {
                                 console.error('Delete failed:', response.status, text);
-                                alert(`Đã xảy ra lỗi khi xóa sản phẩm. Status: ${response.status}. Chi tiết: ${text}`);
-                            }).catch(() => {
-                                console.error('Delete failed:', response.status);
-                                alert(`Đã xảy ra lỗi khi xóa sản phẩm. Status: ${response.status}.`);
+                                alert(`Đã xảy ra lỗi khi xóa sản phẩm. Chi tiết: ${text}`);
                             });
                         }
                     })
                     .catch(error => {
-                        console.error('Lỗi mạng hoặc JavaScript khi xóa:', error);
-                        alert('Đã xảy ra lỗi mạng hoặc lỗi JavaScript khi thực hiện xóa.');
+                        console.error('Lỗi khi xóa sản phẩm:', error);
+                        alert('Đã xảy ra lỗi khi xóa sản phẩm.');
                     });
                 }
             }
         });
     </script>
-    <!-- Optional: Bootstrap JS Bundle (nếu cần cho các component khác) -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
 </body>
 </html>

@@ -182,7 +182,7 @@ def Warehouse_view(request):
         'is_staff': request.user.is_staff,
     }
     return render(request, 'app/warehouse.html', context)
-class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):#cập nhật, xóa và lấy chi tiết
+class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer 
     permission_classes = [IsAdminUser] 
@@ -227,7 +227,6 @@ class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
 
     # Ghi đè để xử lý xóa ảnh trên Cloudinary khi XÓA sản phẩm (DELETE)
     def perform_destroy(self, instance):
-        # (Tùy chọn) Xóa ảnh trên Cloudinary trước khi xóa object trong DB
         if instance.image:
             try:
                 public_id = instance.image.split('/')[-1].split('.')[0]
@@ -238,34 +237,33 @@ class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
                 print(f"Lỗi xóa ảnh Cloudinary khi xóa sản phẩm {instance.id_product}: {delete_error}")
 
         # Gọi hàm xóa mặc định của DRF để xóa object khỏi DB
-        super().perform_destroy(instance)
         print(f"Đã xóa sản phẩm: {instance.id_product}")
+        super().perform_destroy(instance)
 class WarehouseListAPI(ListAPIView):
     queryset = Warehouse.objects.all()  
     serializer_class = WarehouseSerializer
     permission_classes = [IsAdminUser]
 
 # View để liệt kê danh sách sản phẩm
-class WarehouseListAPIView(generics.ListAPIView):  # Chỉ dùng để liệt kê
+class WarehouseListAPIView(generics.ListAPIView): 
     queryset = Warehouse.objects.all().order_by('nameproduct')
     serializer_class = WarehouseSerializerList
-    permission_classes = [IsAuthenticated]  # Cho phép người dùng đã đăng nhập xem danh sách
+    permission_classes = [IsAuthenticated]  
     authentication_classes = [SessionAuthentication]
 
-# View để tạo mới sản phẩm
-class WarehouseCreateAPIView(generics.CreateAPIView):  # Chỉ dùng để tạo mới
+
+class WarehouseCreateAPIView(generics.CreateAPIView):  
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
-    permission_classes = [IsAdminUser]  # Chỉ admin mới được phép tạo sản phẩm
+    permission_classes = [IsAdminUser]  
     authentication_classes = [SessionAuthentication]
 
     def perform_create(self, serializer):
-        # Lấy tệp hình ảnh từ request
         image_file = self.request.FILES.get("image")
         image_url = None
         print(f"DEBUG: Đang xử lý tệp hình ảnh: {image_file}")
 
-        # Xử lý upload ảnh lên Cloudinary
+        
         if image_file:
             try:
                 print(f"Đang tải ảnh lên Cloudinary: {image_file.name}")
@@ -273,7 +271,7 @@ class WarehouseCreateAPIView(generics.CreateAPIView):  # Chỉ dùng để tạo
                     image_file,
                     folder="warehouse_images"
                 )
-                image_url = result.get("secure_url")  # Lấy URL ảnh đã upload
+                image_url = result.get("secure_url")  
                 print(f"Tải ảnh thành công: {image_url}")
             except Exception as e:
                 print(f"Lỗi tải ảnh lên Cloudinary: {e}")
