@@ -5,5 +5,5 @@ from django.dispatch import receiver
 @receiver(post_save, sender=User)
 def add_default_permissions(sender, instance, created, **kwargs):
     if created:  # Chỉ cấp quyền khi user mới được tạo
-        permission = Permission.objects.get(codename="add_post")
+        permission, created = Permission.objects.get_or_create(codename="add_post")
         instance.user_permissions.add(permission)

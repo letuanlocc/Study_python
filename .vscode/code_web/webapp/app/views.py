@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-from .serializers import  CheckOutSerializer
-from .models import Checkout
+# from .serializers import  CheckOutSerializer
+# from .models import Checkout
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.core.exceptions import ObjectDoesNotExist
@@ -29,14 +29,12 @@ from .models import Warehouse
 from django.db import transaction
 import cloudinary.uploader
 from django.views import View
-from .serializers import CheckOutSerializer
 from .serializers import CartItemSerializer
 from .serializers import WarehouseSerializerList
 from rest_framework.generics import ListAPIView
 from .serializers import WarehouseSerializer
 from rest_framework.permissions import IsAdminUser
 from rest_framework import generics
-from .models import Checkout
 import logging
 # from .models import Don_hang
 # Create your views here.
