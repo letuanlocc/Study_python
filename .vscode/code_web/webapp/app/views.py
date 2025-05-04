@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-# from .serializers import  CheckOutSerializer
-# from .models import Checkout
+from .serializers import  CheckOutSerializer
+from .models import Checkout
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.core.exceptions import ObjectDoesNotExist
@@ -71,6 +71,29 @@ def menu_view(request):
             "result" : warehouse
         }
         return render(request, "app/menu.html", context)
+def purchased(request):
+    username = request.user.username if request.user.is_authenticated else "Guest"
+    total = None
+    turnover = []
+    if request.method == "POST":
+        month = request.POST.get("month", "").strip()
+        year = request.POST.get("year", "").strip()
+        month = month
+        year = year
+        if year:
+            if month:
+                turnover = Checkout.objects.filter(username=username, date_time__month=month, date_time__year=year).values("price","nameproduct","date_time","quantity")
+            else:
+                turnover = Checkout.objects.filter(username=username, date_time__year=year).values("price","nameproduct","date_time","quantity")
+        total = 0
+        for item in turnover:
+            total += item["price"]
+    context = {
+        "username" : username,
+        "total" : total,
+        "result" : turnover
+    }
+    return render(request, "app/purchased.html", context)
 def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -139,6 +162,7 @@ class CheckOutAPIView(APIView):
             nameproduct = item.get('nameproduct')
             warehouse = Warehouse.objects.filter(nameproduct = nameproduct).first()
             id_product = warehouse.id_product
+            username = request.user.username
             price = item.get('price')
             quantity = item.get('quantity', 1)
             if not process_order(id_product,quantity):
@@ -146,6 +170,7 @@ class CheckOutAPIView(APIView):
             print("Đơn hàng thành công!")
             data = {
             'id_product': id_product,
+            'username': username,
             'nameproduct': nameproduct,
             'price': price,
             'quantity': quantity,
@@ -155,7 +180,7 @@ class CheckOutAPIView(APIView):
             serializer = CheckOutSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}")
+                print(f"Đã lưu sản phẩm: {nameproduct}, Giá: {price}, Số lượng: {quantity}, username: {username}")
                 print("da luu vao databse")
                 order_success.append(nameproduct)
             else:
