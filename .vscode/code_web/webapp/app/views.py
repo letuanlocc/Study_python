@@ -36,6 +36,8 @@ from .serializers import WarehouseSerializer
 from rest_framework.permissions import IsAdminUser
 from rest_framework import generics
 import logging
+from collections import defaultdict
+from django.db.models import Sum
 # from .models import Don_hang
 # Create your views here.
 
@@ -74,24 +76,43 @@ def menu_view(request):
 def purchased(request):
     username = request.user.username if request.user.is_authenticated else "Guest"
     total = None
-    turnover = []
+    turnover = [] 
+    chart_labels = []
+    chart_values = []
+    year = None
     if request.method == "POST":
-        month = request.POST.get("month", "").strip()
         year = request.POST.get("year", "").strip()
-        month = month
+        month = request.POST.get("month", "").strip()
         year = year
+        month = month
         if year:
-            if month:
-                turnover = Checkout.objects.filter(username=username, date_time__month=month, date_time__year=year).values("price","nameproduct","date_time","quantity")
-            else:
-                turnover = Checkout.objects.filter(username=username, date_time__year=year).values("price","nameproduct","date_time","quantity")
-        total = 0
-        for item in turnover:
-            total += item["price"]
+            data = Checkout.objects.filter(date_time__year=year).values("price","nameproduct","date_time","quantity")
+            total = sum(item["price"] * item["quantity"] for item in data)
+            turnover = list(data)
+            month_total = defaultdict(int)
+            for item in data:
+                data_month = item["date_time"].month
+                month_total[data_month] += (item["price"] * item["quantity"])
+            chart_labels = [month for month, _ in month_total.items()]
+            chart_values = [value for _, value in month_total.items()]
+        if month and year:
+            data = Checkout.objects.filter(date_time__year=year, date_time__month=month).values("price","nameproduct","date_time","quantity")
+            total = sum(item["price"] * item["quantity"]  for item in data)
+            turnover = list(data)
+            day_total = defaultdict(int)
+            for item in data:
+                day = item["date_time"].day
+                day_total[day] += (item["price"] * item["quantity"])
+            chart_labels = [day for day, _ in day_total.items()]
+            chart_values = [value for _, value in day_total.items()]
     context = {
         "username" : username,
         "total" : total,
-        "result" : turnover
+        "result" : turnover,
+        "chart_data": {
+            "labels": json.dumps(chart_labels),
+            "values": json.dumps(chart_values),
+        }
     }
     return render(request, "app/purchased.html", context)
 def register(request):

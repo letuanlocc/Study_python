@@ -106,9 +106,8 @@
                   <ul class="dropdown-menu">
                     {% if request.user.is_staff or request.user.is_superuser %}
                         <li><a class="dropdown-item" href="{% url 'warehouse_page' %}">warehouse</a></li>
+                        <li><a class="dropdown-item" href="{% url 'purchased_page' %}">View purchased</a></li>
                     {% endif %}
-                    <li><a class="dropdown-item" href="{% url 'purchased_page' %}">View purchased</a></li>
-                    <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#">Something else here</a></li>
                   </ul>
               </ul>
