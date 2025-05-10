@@ -77,9 +77,18 @@ def purchased(request):
     username = request.user.username if request.user.is_authenticated else "Guest"
     total = None
     turnover = [] 
-    chart_labels = []
-    chart_values = []
+    product = []
+    chart_labels_turnover = []
+    chart_values_turnover = []
+    chart_labels_product = []
+    chart_values_product = []
     year = None
+    data = Checkout.objects.values("nameproduct","quantity")
+    product = defaultdict(int)
+    for item in data:
+        product[item["nameproduct"]] += item["quantity"]
+    chart_labels_product = [nameproduct for nameproduct, _ in product.items()]
+    chart_values_product = [price for _, price in product.items()]
     if request.method == "POST":
         year = request.POST.get("year", "").strip()
         month = request.POST.get("month", "").strip()
@@ -93,8 +102,8 @@ def purchased(request):
             for item in data:
                 data_month = item["date_time"].month
                 month_total[data_month] += (item["price"] * item["quantity"])
-            chart_labels = [month for month, _ in month_total.items()]
-            chart_values = [value for _, value in month_total.items()]
+            chart_labels_turnover = [month for month, _ in month_total.items()]
+            chart_values_turnover = [value for _, value in month_total.items()]
         if month and year:
             data = Checkout.objects.filter(date_time__year=year, date_time__month=month).values("price","nameproduct","date_time","quantity")
             total = sum(item["price"] * item["quantity"]  for item in data)
@@ -103,16 +112,20 @@ def purchased(request):
             for item in data:
                 day = item["date_time"].day
                 day_total[day] += (item["price"] * item["quantity"])
-            chart_labels = [day for day, _ in day_total.items()]
-            chart_values = [value for _, value in day_total.items()]
+            chart_labels_turnover = [day for day, _ in day_total.items()]
+            chart_values_turnover = [value for _, value in day_total.items()]
     context = {
         "username" : username,
         "total" : total,
         "result" : turnover,
         "chart_data": {
-            "labels": json.dumps(chart_labels),
-            "values": json.dumps(chart_values),
-        }
+            "labels": json.dumps(chart_labels_turnover),
+            "values": json.dumps(chart_values_turnover),
+        },
+        "chart_data_product": {
+            "labels": json.dumps(chart_labels_product),
+            "values": json.dumps(chart_values_product),
+        },
     }
     return render(request, "app/purchased.html", context)
 def register(request):
