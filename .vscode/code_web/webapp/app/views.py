@@ -49,6 +49,10 @@ def milk_view(request):
     return render(request, 'app/milk.html')
 def link_view(request):
     return render(request, 'app/link.html')
+def is_staff(user):
+    return user.is_staff
+def is_admin_or_staff(user):
+    return user.is_superuser or user.is_staff
 def search(request):
     if request.method == "POST":
         searched = request.POST.get("search", "").strip().lower()
@@ -83,37 +87,93 @@ def purchased(request):
     chart_labels_product = []
     chart_values_product = []
     year = None
+    #chart quantity product purchasedpurchased
     data = Checkout.objects.values("nameproduct","quantity")
     product = defaultdict(int)
     for item in data:
         product[item["nameproduct"]] += item["quantity"]
     chart_labels_product = [nameproduct for nameproduct, _ in product.items()]
     chart_values_product = [price for _, price in product.items()]
+    #chart turnover
     if request.method == "POST":
         year = request.POST.get("year", "").strip()
         month = request.POST.get("month", "").strip()
+        classify = request.POST.get("classify", "").strip()
         year = year
         month = month
-        if year:
-            data = Checkout.objects.filter(date_time__year=year).values("price","nameproduct","date_time","quantity")
-            total = sum(item["price"] * item["quantity"] for item in data)
-            turnover = list(data)
-            month_total = defaultdict(int)
-            for item in data:
-                data_month = item["date_time"].month
-                month_total[data_month] += (item["price"] * item["quantity"])
-            chart_labels_turnover = [month for month, _ in month_total.items()]
-            chart_values_turnover = [value for _, value in month_total.items()]
-        if month and year:
-            data = Checkout.objects.filter(date_time__year=year, date_time__month=month).values("price","nameproduct","date_time","quantity")
-            total = sum(item["price"] * item["quantity"]  for item in data)
-            turnover = list(data)
-            day_total = defaultdict(int)
-            for item in data:
-                day = item["date_time"].day
-                day_total[day] += (item["price"] * item["quantity"])
-            chart_labels_turnover = [day for day, _ in day_total.items()]
-            chart_values_turnover = [value for _, value in day_total.items()]
+        super_user = User.objects.filter(is_superuser = True).values_list("username",flat=True)
+        normal_user = User.objects.filter(is_superuser = False).values_list("username",flat=True)
+        super_user = list(super_user)  
+        normal_user = list(normal_user) 
+        print("classify:", classify)
+        print("super_user:", super_user)
+        print("normal_user:", normal_user) 
+        if classify == "online":
+            if year: # create chart for year
+                data = Checkout.objects.filter(date_time__year=year).exclude(username__in=super_user).exclude(username="").values("price","nameproduct","date_time","quantity")
+                total = sum(item["price"] * item["quantity"] for item in data)
+                turnover = list(data)
+                month_total = defaultdict(int)
+                for item in data:
+                    data_month = item["date_time"].month
+                    month_total[data_month] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [month for month, _ in month_total.items()]
+                chart_values_turnover = [value for _, value in month_total.items()]
+            if month and year: # create chart for year and month
+                data = Checkout.objects.filter(date_time__year=year, date_time__month=month).exclude(username__in=super_user).exclude(username="").values("price","nameproduct","date_time","quantity","username")
+                print("data:", data)
+                total = sum(item["price"] * item["quantity"]  for item in data)
+                turnover = list(data)
+                day_total = defaultdict(int)
+                for item in data:
+                    day = item["date_time"].day
+                    day_total[day] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [day for day, _ in day_total.items()]
+                chart_values_turnover = [value for _, value in day_total.items()]
+        elif classify == "offline":
+            if year: # create chart for year
+                data = Checkout.objects.filter(date_time__year=year).exclude(username__in=normal_user).exclude(username="").values("price","nameproduct","date_time","quantity")
+                total = sum(item["price"] * item["quantity"] for item in data)
+                turnover = list(data)
+                month_total = defaultdict(int)
+                for item in data:
+                    data_month = item["date_time"].month
+                    month_total[data_month] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [month for month, _ in month_total.items()]
+                chart_values_turnover = [value for _, value in month_total.items()]
+            if month and year: # create chart for year and month
+                data = Checkout.objects.filter(date_time__year=year, date_time__month=month).exclude(username__in=normal_user).exclude(username="").values("price","nameproduct","date_time","quantity","username") 
+                print("data:", data)
+                total = sum(item["price"] * item["quantity"]  for item in data)
+                turnover = list(data)
+                day_total = defaultdict(int)
+                for item in data:
+                    day = item["date_time"].day
+                    day_total[day] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [day for day, _ in day_total.items()]
+                chart_values_turnover = [value for _, value in day_total.items()]
+        else:
+            if year: # create chart for year
+                data = Checkout.objects.filter(date_time__year=year).exclude(username="").values("price","nameproduct","date_time","quantity")
+                total = sum(item["price"] * item["quantity"] for item in data)
+                turnover = list(data)
+                month_total = defaultdict(int)
+                for item in data:
+                    data_month = item["date_time"].month
+                    month_total[data_month] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [month for month, _ in month_total.items()]
+                chart_values_turnover = [value for _, value in month_total.items()]
+            if month and year: # create chart for year and month
+                data = Checkout.objects.filter(date_time__year=year, date_time__month=month).exclude(username="").values("price","nameproduct","date_time","quantity","username") 
+                print("data:", data)
+                total = sum(item["price"] * item["quantity"]  for item in data)
+                turnover = list(data)
+                day_total = defaultdict(int)
+                for item in data:
+                    day = item["date_time"].day
+                    day_total[day] += (item["price"] * item["quantity"])
+                chart_labels_turnover = [day for day, _ in day_total.items()]
+                chart_values_turnover = [value for _, value in day_total.items()]
     context = {
         "username" : username,
         "total" : total,
@@ -222,10 +282,6 @@ class CheckOutAPIView(APIView):
         if order_success:
             return Response({"message": "Thanh toán thành công!"}, status=status.HTTP_201_CREATED)
         return Response({"message": "Không có sản phẩm nào được thanh toán!"}, status=status.HTTP_400_BAD_REQUEST)
-def is_staff(user):
-    return user.is_staff
-def is_admin_or_staff(user):
-    return user.is_superuser or user.is_staff
 @login_required
 def Warehouse_view(request):
     print(f"User: {request.user}, Staff: {request.user.is_staff}, Superuser: {request.user.is_superuser}")
@@ -272,28 +328,26 @@ class WarehouseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
                     image_file,
                     folder="warehouse_images"
                 )
-                image_url = result.get("secure_url")  # Lấy URL ảnh mới
+                image_url = result.get("secure_url")  
                 print(f"Tải ảnh mới thành công: {image_url}")
             except Exception as e:
                 print(f"Lỗi tải ảnh mới lên Cloudinary: {e}")
                 raise serializer.ValidationError({"image": f"Tải ảnh mới thất bại: {e}"})
 
-        # Lưu URL ảnh mới hoặc giữ URL ảnh cũ
+        
         serializer.save(image=image_url)
         print(f"Đã cập nhật sản phẩm: {instance.id_product}")
 
-    # Ghi đè để xử lý xóa ảnh trên Cloudinary khi XÓA sản phẩm (DELETE)
     def perform_destroy(self, instance):
         if instance.image:
             try:
                 public_id = instance.image.split('/')[-1].split('.')[0]
                 print(f"Đang xóa ảnh (do xóa sản phẩm) trên Cloudinary: {public_id}")
-                cloudinary.uploader.destroy(public_id) # Hoặc public_id_with_folder
+                cloudinary.uploader.destroy(public_id) 
             except Exception as delete_error:
-                # Log lỗi nhưng vẫn tiếp tục xóa object khỏi DB
+               
                 print(f"Lỗi xóa ảnh Cloudinary khi xóa sản phẩm {instance.id_product}: {delete_error}")
-
-        # Gọi hàm xóa mặc định của DRF để xóa object khỏi DB
+                
         print(f"Đã xóa sản phẩm: {instance.id_product}")
         super().perform_destroy(instance)
 class WarehouseListAPI(ListAPIView):
@@ -334,12 +388,11 @@ class WarehouseCreateAPIView(generics.CreateAPIView):
                 print(f"Lỗi tải ảnh lên Cloudinary: {e}")
                 raise serializer.ValidationError({"image": f"Tải ảnh thất bại: {e}"})
 
-        # Lưu URL ảnh vào cơ sở dữ liệu
         serializer.save(image=image_url)
         print(f"Đã tạo sản phẩm: {serializer.instance.id_product}")
 
 def warehouse_list(request):
-    warehouse_items = Warehouse.objects.all().order_by('nameproduct')  # Lấy danh sách sản phẩm
+    warehouse_items = Warehouse.objects.all().order_by('nameproduct')  
     context = {
         'warehouse_items': warehouse_items
     }

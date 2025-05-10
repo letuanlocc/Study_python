@@ -18,7 +18,12 @@
         
         <label for="month">Select Month:</label>  <!-- Sửa name từ "year" thành "month" -->
         <input type="number" id="month" name="month" value="{% if month %}{{ month }}{% else %}{% endif %}" >
-
+        <div id="classify">
+            <input type="radio" id="online" name="classify" value="online" {% if purchase_type == "online" %}checked{% endif %}>
+            <label for="online">Online</label>
+            <input type="radio" id="offline" name="classify" value="offline" {% if purchase_type == "offline" %}checked{% endif %}>
+            <label for="offline">Offline</label>
+        </div>
         <button type="submit">Check Purchased</button>
     </form>
 

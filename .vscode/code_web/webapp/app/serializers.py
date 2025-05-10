@@ -16,7 +16,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         
     def update(self, instance, validated_data):
         image = validated_data.get('image', None) 
-        if image is None:  # Nếu không có ảnh mới, giữ ảnh cũ
+        if image is None: 
             validated_data['image'] = instance.image
         return super().update(instance, validated_data)
 class WarehouseSerializer(serializers.ModelSerializer):
@@ -24,11 +24,10 @@ class WarehouseSerializer(serializers.ModelSerializer):
         model = Warehouse
         fields = ['id_product', 'nameproduct', 'origin', 'price', 'instock']
         extra_kwargs = {
-            'image': {'required': False}  # Không bắt buộc phải gửi trường image
+            'image': {'required': False}  
         }
 
     def update(self, instance, validated_data):
-        # Nếu không có ảnh mới, giữ ảnh cũ
         if 'image' not in validated_data or validated_data['image'] is None:
             validated_data['image'] = instance.image
         return super().update(instance, validated_data)
