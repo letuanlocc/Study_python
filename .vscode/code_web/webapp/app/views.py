@@ -192,7 +192,18 @@ def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()  
+            set_button = request.POST.get("set_admin")
+            password = request.POST.get("admin_password","")
+            if set_button and (request.user.is_superuser and request.user.is_staff):
+                if check_password(password, request.user.password) and request.user.is_authenticated:
+                    user = form.save(commit=False)
+                    user.is_staff = True
+                    user.is_superuser = True
+                    user.save()
+                    messages.success(request, "Tạo tài khoản thành công!")
+                else:
+                    messages.error(request, "Mật khẩu không đúng!")
+                    return redirect("register_page")
             return redirect("login_page")  
         else:
              return render(request, 'app/register.html', {'form': form})
