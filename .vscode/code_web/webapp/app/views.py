@@ -188,59 +188,59 @@ def purchased(request):
         },
     }
     return render(request, "app/purchased.html", context)
-def register(request):
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            set_button = request.POST.get("set_admin")
-            password = request.POST.get("admin_password","")
-            if set_button and (request.user.is_superuser and request.user.is_staff):
-                if check_password(password, request.user.password) and request.user.is_authenticated:
-                    user = form.save(commit=False)
-                    user.is_staff = True
-                    user.is_superuser = True
-                    user.save()
-                    messages.success(request, "Tạo tài khoản thành công!")
-                else:
-                    messages.error(request, "Mật khẩu không đúng!")
-                    return redirect("register_page")
-            return redirect("login_page")  
-        else:
-             return render(request, 'app/register.html', {'form': form})
-    else:
-        form = RegisterForm()
-    return render(request, 'app/register.html', {'form': form})
-def login_view(request):
-    if request.method == "POST":
-        print("DEBUG: Form nhận request POST", request.POST)
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data["user_name"]
-            password = form.cleaned_data["pass_word"]
-            user = authenticate(request, username=username, password=password,)
-            if user:
-                login(request, user)
-                token_url = "http://127.0.0.1:8000/api/token/"
-                data = {"username": username, "password": password}
-                response = requests.post(token_url, json=data)
-                if response.status_code == 200:
-                    tokens = response.json()
-                    access_token = tokens["access"]
+# def register(request):
+#     if request.method == "POST":
+#         form = RegisterForm(request.POST)
+#         if form.is_valid():
+#             set_button = request.POST.get("set_admin")
+#             password = request.POST.get("admin_password","")
+#             if set_button and (request.user.is_superuser and request.user.is_staff):
+#                 if check_password(password, request.user.password) and request.user.is_authenticated:
+#                     user = form.save(commit=False)
+#                     user.is_staff = True
+#                     user.is_superuser = True
+#                     user.save()
+#                     messages.success(request, "Tạo tài khoản thành công!")
+#                 else:
+#                     messages.error(request, "Mật khẩu không đúng!")
+#                     return redirect("register_page")
+#             return redirect("login_page")  
+#         else:
+#              return render(request, 'app/register.html', {'form': form})
+#     else:
+#         form = RegisterForm()
+#     return render(request, 'app/register.html', {'form': form})
+# # def login_view(request):
+#     if request.method == "POST":
+#         print("DEBUG: Form nhận request POST", request.POST)
+#         form = LoginForm(request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data["user_name"]
+#             password = form.cleaned_data["pass_word"]
+#             user = authenticate(request, username=username, password=password,)
+#             if user:
+#                 login(request, user)
+#                 token_url = "http://127.0.0.1:8000/api/token/"
+#                 data = {"username": username, "password": password}
+#                 response = requests.post(token_url, json=data)
+#                 if response.status_code == 200:
+#                     tokens = response.json()
+#                     access_token = tokens["access"]
                     
-                    # 🔥 Lưu token vào cookie
-                    res = redirect("home_page")
-                    res.set_cookie("access_token", access_token, httponly=True, secure=True, max_age=3600, samesite="Lax")
-                    return res
-        else:
-            print("DEBUG: Đăng nhập thất bại!") 
-            messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
-    else:
-        form = LoginForm()
-    return render(request, "app/login.html", {"form": form})
-def logout_view(request):
-    logout(request)
-    messages.success(request, "Bạn đã đăng xuất thành công!")
-    return redirect("home_page")  
+#                     # 🔥 Lưu token vào cookie
+#                     res = redirect("home_page")
+#                     res.set_cookie("access_token", access_token, httponly=True, secure=True, max_age=3600, samesite="Lax")
+#                     return res
+#         else:
+#             print("DEBUG: Đăng nhập thất bại!") 
+#             messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
+#     else:
+#         form = LoginForm()
+#     return render(request, "app/login.html", {"form": form})
+# def logout_view(request):
+#     logout(request)
+#     messages.success(request, "Bạn đã đăng xuất thành công!")
+#     return redirect("home_page")  
 def process_order(id_product, quantity):
     with transaction.atomic():  
         warehouse = Warehouse.objects.select_for_update().get(id_product=id_product)

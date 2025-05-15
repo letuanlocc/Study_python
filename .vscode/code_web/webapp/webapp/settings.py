@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
+    'accounts',
     'rest_framework',
     'rest_framework_simplejwt',
     "django_extensions",
@@ -79,7 +80,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '<925757706340-srn97tn9fffv21g6sto1uisidf4vaa4o.
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '<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>'
 
 SITE_ID = 1
-
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'# Đường dẫn sau khi đăng nhập thành công
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -117,6 +119,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 
 ]
 
@@ -125,9 +130,8 @@ ROOT_URLCONF = 'webapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates',  
-            ],
+        'DIRS': [BASE_DIR / 'accounts' / 'templates'],
+
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
