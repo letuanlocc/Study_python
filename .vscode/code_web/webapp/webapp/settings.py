@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-17cb)_ga13#-ra+o&o_4ctjefnmdh425cf-3z5c(1my(jn8hh$'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -100,8 +100,8 @@ SIMPLE_JWT = {
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dmjxgbywe',
-    'API_KEY': '734185299915842',
-    'API_SECRET': 'Dz5UmoBy7TbumvmIyJogMw87BDo',
+    'API_KEY': os.getenv('API_KEY'),
+    'API_SECRET': os.getenv('API_SECRET'),
 }
 cloudinary.config(
     cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
