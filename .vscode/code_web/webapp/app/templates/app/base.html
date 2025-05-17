@@ -8,7 +8,7 @@
     <head>
       {%if username != "Guest" %}
            <h1>Chào {{username}} </h1>
-           <a href="{% url 'account_logout' %}">Đăng xuất</a>
+            <a href="{% url 'account_logout' %}">Đăng xuất</a>
       {% else %}
            <h1>Chào khách</h1>
            <a href="{% url 'account_login' %}">Đăng nhập</a>
@@ -93,9 +93,11 @@
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="webapp\milkapp">home</a></li>
                     <li><a class="dropdown-item" href="#">sign out</a></li>
-                    {% if request.user.is_authenticated%}
-                        <li><a class="dropdown-item" href="{% url 'account_login' %}">log in</a></li>
-                    {%endif%}
+                    {% if not request.user.is_authenticated %}
+                          <li><a class="dropdown-item" href="{% url 'account_login' %}">Log in</a></li>
+                    {% else %}
+                          <li><a class="dropdown-item" href="{% url 'account_logout' %}">Sign out</a></li>
+                    {% endif %}
                     <li><a class="dropdown-item" href="{% url 'account_signup' %}">register</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#">Something else here</a></li>
@@ -122,11 +124,11 @@
             <h4> <em> Copyright 2022 </em> <h4>
         </footer>
         {% if messages %}
-        <script>
-        {% for message in messages %}
-           alert("{{ message }}");
-        {% endfor %}
-       </script>
-     {% endif %}
+          <ul class="messages">
+           {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+           {% endfor %}
+          </ul>
+        {% endif %}
     </body>
 </html>

@@ -43,6 +43,7 @@ from django.db.models import Sum
 
 def home(request):
     username = request.user.username if request.user.is_authenticated else "Guest"
+    print(f"DEBUG: User: {request.user}, Authenticated: {request.user.is_authenticated}")
     context = {"username": username}
     return render(request, "app/home.html", context)
 def milk_view(request):

@@ -60,17 +60,28 @@ INSTALLED_APPS = [
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+        'APP': {
+            'client_id': '925757706340-srn97tn9fffv21g6sto1uisidf4vaa4o.apps.googleusercontent.com',
+            'secret': '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',
+            'key': ''
         },
-        'OAUTH_PKCE_ENABLED': True,
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'METHOD': 'oauth2',
+        'VERIFIED_EMAIL': True
+    },
+    'github': {
+        'APP': {
+            'client_id': '',
+            'secret': '',
+            'key': ''
+        }
     }
 }
-
+# 
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCCIALACCOUNT_LOGIN_ON_GET = True
 AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -81,7 +92,10 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'# Đường dẫn sau khi đăng nhập thành công
+LOGOUT_REDIRECT_URL = '/'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -91,12 +105,12 @@ REST_FRAMEWORK = {
     ],
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Token sống trong 5 phút
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token sống 7 ngày
-    'ROTATE_REFRESH_TOKENS': True,  # 🔥 Tự động cấp refresh token mới
-    'BLACKLIST_AFTER_ROTATION': True,  # 🔥 Token cũ sẽ bị vô hiệu hóa
-}
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Token sống trong 5 phút
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token sống 7 ngày
+#     'ROTATE_REFRESH_TOKENS': True,  # 🔥 Tự động cấp refresh token mới
+#     'BLACKLIST_AFTER_ROTATION': True,  # 🔥 Token cũ sẽ bị vô hiệu hóa
+# }
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dmjxgbywe',
@@ -113,17 +127,16 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware', 
+    'django.middleware.common.CommonMiddleware',     
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
-
+    'django.middleware.cache.FetchFromCacheMiddleware', 
 ]
+
 
 ROOT_URLCONF = 'webapp.urls'
 
@@ -139,6 +152,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -210,3 +224,6 @@ SESSION_COOKIE_SECURE = False  # Nếu đang test local, tránh lỗi HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = "sessionid"
 SESSION_SAVE_EVERY_REQUEST = True
+
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_LOGIN_METHODS = {"email"}

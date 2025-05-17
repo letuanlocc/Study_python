@@ -1,0 +1,62 @@
+{% block content %}
+<style>
+  .logout-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 10px;
+    background: #f9f9f9;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 25px;
+  }
+
+  p {
+    color: #555;
+    font-size: 1.05rem;
+    margin-bottom: 30px;
+  }
+
+  form button {
+    background-color: #007bff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  form button:hover {
+    background-color: #0056b3;
+  }
+
+  a.back-home {
+    display: inline-block;
+    margin-top: 20px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  a.back-home:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="logout-container">
+  <h2>Are you sure you want to log out?</h2>
+  <p>Click the button below to log out of your account.</p>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log Out</button>
+  </form>
+  <a class="back-home" href="{% url 'home_page' %}">Back to Home</a>
+</div>
+{% endblock %}

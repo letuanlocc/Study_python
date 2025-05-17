@@ -1,5 +1,6 @@
+{% comment %}  {% endcomment %}
 {% load socialaccount %}
-
+{% get_providers as socialaccount_providers %}
 {% block content %}
 <style>
   .login-container {
@@ -161,15 +162,12 @@
   <p class="signup-text">
     Don't have an account? <a href="{% url 'account_signup' %}">Sign up here</a>
   </p>
-
   {% if socialaccount_providers %}
-  <div class="social-login">
+   <div class="social-login">
     <h3>Or login using:</h3>
     {% for provider in socialaccount_providers %}
-      <a href="{% provider_login_url provider.id %}">{{ provider.name }}</a>
+       <a href="{% provider_login_url provider.id %}">{{ provider.name }}</a>
     {% endfor %}
   </div>
   {% endif %}
-</div>
-
 {% endblock %}
