@@ -17,6 +17,11 @@ from  dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import logging
+
+logger = logging.getLogger('allauth')
+logger.setLevel(logging.DEBUG)
+
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -63,7 +68,10 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': '925757706340-srn97tn9fffv21g6sto1uisidf4vaa4o.apps.googleusercontent.com',
             'secret': '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',
-            'key': ''
+        },
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+            'prompt': 'select_a,ccount'
         },
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
@@ -79,9 +87,6 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 # 
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCCIALACCOUNT_LOGIN_ON_GET = True
 AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -89,8 +94,14 @@ AUTHENTICATION_BACKENDS = (
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
-
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+ACCOUNT_EMAIL_VERIFICATION = "none" 
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True  
 SITE_ID = 1
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.MySocialAccountAdapter'
+
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -220,10 +231,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SESSION_COOKIE_SECURE = False  # Nếu đang test local, tránh lỗi HTTPS
+SESSION_COOKIE_SECURE = False  
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = "sessionid"
 SESSION_SAVE_EVERY_REQUEST = True
-
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_LOGIN_METHODS = {"email"}
