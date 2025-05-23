@@ -91,16 +91,15 @@
                     User
                   </a>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="webapp\milkapp">home</a></li>
-                    <li><a class="dropdown-item" href="#">sign out</a></li>
+                    <li><a class="dropdown-item" href="#">Home</a></li>
                     {% if not request.user.is_authenticated %}
                           <li><a class="dropdown-item" href="{% url 'account_login' %}">Log in</a></li>
                     {% else %}
                           <li><a class="dropdown-item" href="{% url 'account_logout' %}">Sign out</a></li>
                     {% endif %}
-                    <li><a class="dropdown-item" href="{% url 'account_signup' %}">register</a></li>
+                    <li><a class="dropdown-item" href="{% url 'account_signup' %}">Register</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    <li><a class="dropdown-item" href="{% url 'manage_account_page' %}">Manage account</a></li>
                   </ul>
                 </li>
                 <li class="nav-item dropdown">

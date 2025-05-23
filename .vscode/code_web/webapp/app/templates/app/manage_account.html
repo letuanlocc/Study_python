@@ -1,0 +1,100 @@
+{% block content %}
+
+<style>
+  .account-container {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 10px;
+    background: #f9f9f9;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 25px;
+  }
+
+  .account-field {
+    margin-bottom: 20px;
+  }
+
+  .account-field label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+  }
+
+  .account-field input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+
+  .message {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  button {
+    width: 100%;
+    background-color: #007bff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+</style>
+
+<div class="account-container">
+  <h2>Manage Your Account</h2>
+
+{% if messages %}
+  <script>
+    {% for message in messages %}
+      console.log("Message: {{ message|escapejs }}");
+      alert("{{ message|escapejs }}");
+    {% endfor %}
+  </script>
+{% endif %}
+  <form method="post" action="">
+    {% csrf_token %}
+    {% for user in user_object %}
+      <div class="account-field">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" value="{{ user.username }}" autocomplete="off">
+      </div>
+
+      <div class="account-field">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" value="{{ user.email }}" autocomplete="off">
+      </div>
+    {% endfor %}
+    <button type="submit">Save Changes</button>
+  </form>
+</div>
+
+{% endblock %}

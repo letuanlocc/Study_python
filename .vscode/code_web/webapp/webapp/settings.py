@@ -71,7 +71,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'access_type': 'online',
-            'prompt': 'select_a,ccount'
+            'prompt': 'select_account'
         },
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
@@ -99,6 +99,7 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True  
+ACCOUNT_LOGOUT_ON_GET = True
 SITE_ID = 1
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.MySocialAccountAdapter'
 
@@ -138,14 +139,14 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware', 
+    # 'django.middleware.cache.UpdateCacheMiddleware', 
     'django.middleware.common.CommonMiddleware',     
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware', 
+    # 'django.middleware.cache.FetchFromCacheMiddleware', 
 ]
 
 
@@ -154,7 +155,7 @@ ROOT_URLCONF = 'webapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'accounts' / 'templates'],
+        'DIRS': [BASE_DIR / 'accounts/templates'],
 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -230,8 +231,17 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 SESSION_COOKIE_SECURE = False  
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = "sessionid"
 SESSION_SAVE_EVERY_REQUEST = True
+
+#smtp
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = os.getenv('Email_Google')    
+EMAIL_HOST_PASSWORD = os.getenv('Pass_Google')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER            

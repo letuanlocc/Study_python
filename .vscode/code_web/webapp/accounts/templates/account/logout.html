@@ -59,4 +59,19 @@
   </form>
   <a class="back-home" href="{% url 'home_page' %}">Back to Home</a>
 </div>
+
+<script>
+  // Xóa localStorage và sessionStorage (nếu có xài để lưu auth info client)
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // Xóa một số cookie quan trọng (nếu muốn chắc ăn)
+  document.cookie = "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie = "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+  // Redirect về trang chủ sau 1 giây (nếu mày muốn tự động)
+  setTimeout(() => {
+    window.location.href = "{% url 'home_page' %}";
+  }, 1000);
+</script>
 {% endblock %}
