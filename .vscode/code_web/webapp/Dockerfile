@@ -1,26 +1,28 @@
-# Dùng image Python chính thức
 FROM python:3.11
 
-# Cập nhật apt và cài thư viện hệ thống cho ODBC và SQL Server
+# Cài các thư viện hệ thống cần thiết cho ODBC và SQL Server
 RUN apt-get update && apt-get install -y \
-    unixodbc \
-    unixodbc-dev \
-    freetds-dev \
-    tdsodbc \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    apt-transport-https \
+    gnupg \
+    unixodbc-dev
 
-# Đặt thư mục làm việc trong container
+# Thêm Microsoft package key và repo
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list
+
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17
+
+# Đặt thư mục làm việc
 WORKDIR /app
 
-# Copy toàn bộ project vào container
+# Copy project vào
 COPY . .
 
-# Nâng cấp pip và cài thư viện Python
+# Cài pip và các thư viện Python
 RUN pip install --upgrade pip
 RUN pip install -r global_requirements.txt
 
-# Mở port cho Django (mặc định là 8000)
 EXPOSE 8000
 
-# Lệnh chạy Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
