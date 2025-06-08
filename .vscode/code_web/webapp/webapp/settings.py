@@ -183,7 +183,8 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST'),      # Nếu SQL Server chạy trên máy
         'PORT': os.getenv('DB_PORT'),           # Port mặc định của SQL Server
         'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',  # Kiểm tra driver đang dùng
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'timeout': 30,# Kiểm tra driver đang dùng
         },
         'USER': os.getenv('DB_USER'),    # Thay 'your_username' bằng tên đăng nhập SQL của bạn
         'PASSWORD': os.getenv('DB_PASSWORD'),  # Thay 'your_password' bằng mật khẩu của bạn
