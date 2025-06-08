@@ -1,2 +1,7 @@
-.env
+**.env
 .venv/
+*.db
+.DS_Store
+/static/
+media/
+__pycache__/
