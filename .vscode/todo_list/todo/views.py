@@ -6,4 +6,9 @@ from .serializer import TodoSerializer
 class TodoViewSet(viewsets.ModelViewSet):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
-# Create your views here.
+class TodoFilterViewSet(viewsets.ModelViewSet):
+    queryset = Todo.objects.filter(completed=True).order_by('-created_at') #loc theo completed va created at tawng dan
+    serializer_class = TodoSerializer
+    
+    
+    
