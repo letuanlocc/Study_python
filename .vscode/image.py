@@ -6,10 +6,11 @@ class create_index():
         self.key = key
         self.index_result_key = []
         self.bit_key = []
+        self.len = len(key)
     def create_bit(self,key):
         for i in range(len(key)):
-            result = bin(ord(key[i]))
-            self.bit_key.append("0" + result[2:])
+            result = format(ord(key[i]), '08b')
+            self.bit_key.append(result)
     def create_index_key(self):
         #get index bit 0
         index = 1
@@ -25,8 +26,8 @@ class create_index():
                         self.index_result_key.append((newJ,newK))
         lenght = len(self.index_result_key)
         print(lenght)
-ci = create_index("listen")
-ci.create_bit("listen")
+ci = create_index("Locbitnot2k6@")
+ci.create_bit("Locbitnot2k6@")
 print(ci.bit_key)
 ci.create_index_key()
 print(ci.index_result_key)
