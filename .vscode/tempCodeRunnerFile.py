@@ -1,0 +1,1 @@
+if bit[j] == 0 and bit[k] == 0:

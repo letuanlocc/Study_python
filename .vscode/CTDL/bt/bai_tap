@@ -1,0 +1,13 @@
+def main():
+    mang = []
+    n = int(input())  
+    for i in range(n):
+        mang.append(input())
+    for i in range((len(mang))):
+        print("{" + mang[i] +"}",end = " ")
+    for i in range(len(mang) - 1):
+        for j in range(i+1,len(mang)):
+            print("{" + mang[i],mang[j] +"}",end = " ")
+    for i in range((len(mang))):
+        print("{" + mang[i] +"}",end = " ")
+main()

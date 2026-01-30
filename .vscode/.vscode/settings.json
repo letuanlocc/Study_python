@@ -1,0 +1,5 @@
+{
+    "editor.acceptSuggestionOnCommitCharacter": true,
+    "editor.inlineSuggest.edits.allowCodeShifting": "always",
+    "editor.inlineSuggest.enabled": true
+}

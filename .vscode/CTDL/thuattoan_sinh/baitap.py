@@ -1,8 +1,11 @@
-def sum(i,n):
-    if n == 1:
-        return i
-    else:
-        return sum(i + n , n - 1)
-n = 100
-i = 1
-print(sum(1,n))
+digits = [9]
+n = len(digits)
+if digits[n-1] != 9:
+    digits[n-1] += 1
+else:
+     for k in range(n):
+        print(k)
+        digits.insert(k,0)
+        digits[0] = 1
+
+    

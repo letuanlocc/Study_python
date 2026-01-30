@@ -8,6 +8,15 @@ class Todo(models.Model):
     completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
+    class Priority(models.IntegerChoices):
+        HIGH = 1, 'High'
+        MEDIUM = 2, 'Medium'
+        LOW = 3, 'Low'
+        
+    priority = models.IntegerField(
+        choices=Priority.choices,
+        default=Priority.MEDIUM,
+    )
     def __str__(self):
        return self.title
 
