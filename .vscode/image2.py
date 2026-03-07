@@ -1,59 +1,99 @@
-import hashlib
-import random
+import cv2
+import pywt
 import numpy as np
-
-class IndexGenerator:
-    def __init__(self, key: str, max_range: int):
-        self.key = key
-        self.max_range = max_range
-
-        # key -> seed
-        h = hashlib.sha256(key.encode()).hexdigest()
-        self.seed = int(h, 16) % (2**31)
-
-    def generate_indices(self, n_indices: int):
-        """
-        Sinh vị trí giả ngẫu nhiên dựa trên key
-        """
-        random.seed(self.seed)
-
-        indices = random.sample(
-            range(self.max_range),
-            n_indices
-        )
-        return sorted(indices)
-
-    def analyze(self, indices):
-        """
-        Phân tích phân bố
-        """
-        gaps = np.diff(indices)
-
-        return {
-            "total": len(indices),
-            "min_gap": int(np.min(gaps)),
-            "max_gap": int(np.max(gaps)),
-            "avg_gap": float(np.mean(gaps)),
-            "std_gap": float(np.std(gaps)),
-            "consecutive": int(np.sum(gaps == 1))
-        }
+from nistrng import *
+from nistrng import SP800_22R1A_BATTERY
+from nistrng import check_eligibility_all_battery
+from nistrng import run_all_battery
 
 
-# ================== TEST ==================
-if __name__ == "__main__":
-    key = "Locbitnot2k6@"
-    max_range = 5000
-    n_indices = 100
+# ===== Lấy LL từ DWT =====
+def LL_form():
+    image = cv2.imread("example.jpg", cv2.IMREAD_GRAYSCALE)
+    image = np.float32(image)
 
-    gen = IndexGenerator(key, max_range)
+    LL, (LH, HL, HH) = pywt.dwt2(image, 'haar')
 
-    indices = gen.generate_indices(n_indices)
-    stats = gen.analyze(indices)
+    LL_norm = (LL - LL.min()) / (LL.max() - LL.min())
 
-    print("KEY:", key)
-    print("FIRST 10 INDICES:", indices[:10])
-    print("LAST 10 INDICES:", indices[-10:])
+    print("Kích thước LL:", LL.shape)
 
-    print("\n📊 DISTRIBUTION:")
-    for k, v in stats.items():
-        print(f"{k:12s}: {v}")
+    return LL_norm.flatten()
+
+
+# ===== Logistic map =====
+def logistic_map(N):
+    r = 3.99
+    x = 0.37
+    seq = []
+
+    for i in range(N):
+        x = r * x * (1 - x)
+        seq.append(x)
+
+    return np.array(seq)
+
+
+# ===== Chaos mixing =====
+def chaos_mixing(seq):
+    mixed = (seq + np.roll(seq, 1)) % 1
+    return mixed
+
+
+# ===== Sinh bit dựa trên LL =====
+def generate_bits(seq, LL_vec):
+
+    bits = ""
+
+    for i in range(len(seq)):
+
+        x = seq[i]
+        LL = LL_vec[i]
+
+        if x < LL / 2:
+            bits += "00"
+
+        elif x < LL:
+            bits += "01"
+
+        elif x < (LL + 1) / 2:
+            bits += "10"
+
+        else:
+            bits += "11"
+
+    return bits
+
+
+# ===== Pipeline =====
+LL_vec = LL_form()
+
+seq = logistic_map(len(LL_vec))
+
+# trộn chaotic để giảm correlation
+seq_mixed = chaos_mixing(seq)
+
+bit_string = generate_bits(seq_mixed, LL_vec)
+
+print("Tổng bit:", len(bit_string))
+print("Ví dụ bit:", bit_string[:200])
+
+
+# ===== Convert sang numpy =====
+bits = np.array([int(b) for b in bit_string])
+
+
+# ===== NIST TEST =====
+print("\n===== NIST TEST =====")
+
+eligible_tests = check_eligibility_all_battery(bits, SP800_22R1A_BATTERY)
+
+results = run_all_battery(bits, eligible_tests)
+
+for result, elapsed in results:
+
+    print(
+        result.name,
+        "score:", result.score,
+        "pass:", result.passed
+    )
